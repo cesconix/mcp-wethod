@@ -5,8 +5,8 @@ import { describe, expect, it } from "vitest"
 import {
   buildClients,
   buildPersons,
-  buildProjectTypes,
   buildProjects,
+  buildProjectTypes,
 } from "../../src/tools/sync.mjs"
 import { DataLoader } from "../../src/utils/data-loader.mjs"
 
@@ -20,7 +20,10 @@ describe("sync tool", () => {
     const tempDir = join(tmpdir(), `mcp-wethod-sync-test-${Date.now()}`)
 
     const employeesMap = new Map([
-      [42, { id: 42, name: "Salvatore", surname: "Lanzafame", is_external: false }],
+      [
+        42,
+        { id: 42, name: "Salvatore", surname: "Lanzafame", is_external: false },
+      ],
       [99, { id: 99, name: "Marco", surname: "Rossi", is_external: true }],
     ])
 
@@ -52,7 +55,11 @@ describe("sync tool", () => {
     it("persons round-trip", () => {
       mkdirSync(tempDir, { recursive: true })
       const persons = buildPersons(employeesMap)
-      writeFileSync(join(tempDir, "persons.json"), JSON.stringify(persons), "utf-8")
+      writeFileSync(
+        join(tempDir, "persons.json"),
+        JSON.stringify(persons),
+        "utf-8",
+      )
 
       const loader = new DataLoader(tempDir)
       const parsed = loader.getPersons()
@@ -70,7 +77,11 @@ describe("sync tool", () => {
 
     it("projects round-trip", () => {
       const projects = buildProjects(projectsMap, apiProjectMap, clientMap)
-      writeFileSync(join(tempDir, "projects.json"), JSON.stringify(projects), "utf-8")
+      writeFileSync(
+        join(tempDir, "projects.json"),
+        JSON.stringify(projects),
+        "utf-8",
+      )
 
       const loader = new DataLoader(tempDir)
       const parsed = loader.getProjects()
@@ -92,7 +103,11 @@ describe("sync tool", () => {
 
     it("clients round-trip", () => {
       const clients = buildClients(apiClients)
-      writeFileSync(join(tempDir, "clients.json"), JSON.stringify(clients), "utf-8")
+      writeFileSync(
+        join(tempDir, "clients.json"),
+        JSON.stringify(clients),
+        "utf-8",
+      )
 
       const loader = new DataLoader(tempDir)
       const parsed = loader.getClients()
@@ -104,7 +119,11 @@ describe("sync tool", () => {
 
     it("project types round-trip", () => {
       const types = buildProjectTypes(rawProjectTypes)
-      writeFileSync(join(tempDir, "project-types.json"), JSON.stringify(types), "utf-8")
+      writeFileSync(
+        join(tempDir, "project-types.json"),
+        JSON.stringify(types),
+        "utf-8",
+      )
 
       const loader = new DataLoader(tempDir)
       const parsed = loader.getProjectTypes()

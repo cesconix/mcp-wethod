@@ -29,7 +29,7 @@ claude mcp add wethod \
 | `WETHOD_COMPANY` | Yes | Company slug (used in `Wethod-Company` header) |
 | `WETHOD_API_TOKEN` | Yes | Bearer token for Wethod API authentication |
 
-## Tools (21)
+## Tools (22)
 
 ### Timesheet
 
@@ -75,12 +75,13 @@ claude mcp add wethod \
 | `lookup_person` | Find a person by ID or name from local synced data (no API call) |
 | `lookup_project` | Find a project by ID or name from local synced data (no API call) |
 | `lookup_client` | Find a client by ID or name from local synced data (no API call) |
+| `lookup_project_type` | Find a project type by ID or name from local synced data (no API call) |
 
 ### Sync
 
 | Tool | Description |
 |---|---|
-| `sync` | Fetch persons, projects, and clients from Wethod and save as local YAML cache |
+| `sync` | Fetch persons, projects, clients, and project types from Wethod (requires SF6SESSID session cookie) |
 
 ## Prompts (2)
 
@@ -97,12 +98,25 @@ Data is stored in:
 
 ```
 ~/.mcp-wethod/{company}/
-├── persons.yaml
-├── projects.yaml
-└── clients.yaml
+├── persons.json
+├── projects.json
+├── clients.json
+└── project-types.json
 ```
 
 Run `sync` once before using lookup tools, and periodically to keep the cache fresh.
+
+### Getting the Session ID
+
+The `sync` tool requires an `SF6SESSID` cookie for accessing the timetracking report. To retrieve it:
+
+1. Open your browser and log in to Wethod
+2. Open DevTools (F12 or Cmd+Opt+I)
+3. Go to **Application** → **Cookies** → `api.wethod.com`
+4. Copy the value of the `SF6SESSID` cookie
+5. When Claude asks for the session ID, paste the value
+
+The session ID expires periodically — you'll need to retrieve a fresh one when it does.
 
 ## Multi-instance
 
