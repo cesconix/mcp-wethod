@@ -29,59 +29,58 @@ claude mcp add wethod \
 | `WETHOD_COMPANY` | Yes | Company slug (used in `Wethod-Company` header) |
 | `WETHOD_API_TOKEN` | Yes | Bearer token for Wethod API authentication |
 
-## Tools (22)
+## Tools (21)
 
 ### Timesheet
 
-| Tool | Description |
-|---|---|
-| `list_timesheets` | List timesheet entries for a person, with optional project/date filters |
-| `create_timesheet` | Create a new timesheet entry (validates 8h daily limit) |
-| `update_timesheet` | Update hours or notes on an existing timesheet entry |
-| `delete_timesheet` | Delete a timesheet entry by ID |
-| `check_timesheet_status` | Check timesheet completeness for a person for a given week |
-| `list_timesheet_logs` | List timesheet change logs for auditing |
+| Tool | Description | Endpoint |
+|---|---|---|
+| `list_timesheets` | List timesheet entries for a person, with optional project/date filters | `GET /api/timesheets` |
+| `create_timesheet` | Create a new timesheet entry (validates 8h daily limit) | `GET /api/timesheets` `POST /api/timesheets` |
+| `update_timesheet` | Update hours or notes on an existing timesheet entry | `PATCH /api/timesheets/:id` |
+| `delete_timesheet` | Delete a timesheet entry by ID | `DELETE /api/timesheets/:id` |
+| `check_timesheet_status` | Check timesheet completeness for a person for a given week | `GET /api/timesheets` |
+| `list_timesheet_logs` | List timesheet change logs for auditing | `GET /api/timesheet-logs` |
 
 ### Team & Planning
 
-| Tool | Description |
-|---|---|
-| `get_team_timesheet` | Check timesheet completion status for multiple people |
-| `get_weekly_plan` | Show who is working on what this week from allocation data |
-| `get_availability` | Show utilization and available capacity per person |
+| Tool | Description | Endpoint |
+|---|---|---|
+| `get_team_timesheet` | Check timesheet completion status for multiple people | `GET /api/timesheets` |
+| `get_weekly_plan` | Show who is working on what this week from allocation data | `GET /api/people-allocations` |
+| `get_availability` | Show utilization and available capacity per person | `GET /api/people-allocations` |
 
 ### Projects
 
-| Tool | Description |
-|---|---|
-| `list_projects` | List projects with filtering by probability and pagination |
-| `get_project` | Get full details of a single project by ID |
-| `list_budgets` | List project budgets with status, days, costs, and prices |
-| `list_productions` | List actual production values by project and date |
-| `list_production_plans` | List planned production values for variance tracking |
+| Tool | Description | Endpoint |
+|---|---|---|
+| `list_projects` | List projects with filtering by probability and pagination | `GET /api/projects` |
+| `get_project` | Get full details of a single project by ID | `GET /api/projects/:id` |
+| `list_budgets` | List project budgets with status, days, costs, and prices | `GET /api/budgets` |
+| `list_productions` | List actual production values by project and date | `GET /api/productions` |
+| `list_production_plans` | List planned production values for variance tracking | `GET /api/production-plans` |
 
-### People & Clients
+### Clients & Capacities
 
-| Tool | Description |
-|---|---|
-| `list_persons` | Search for people by name, surname, or email |
-| `list_clients` | List clients with company names, contacts, and details |
-| `list_capacities` | List work capacity configurations and weekly schedules |
+| Tool | Description | Endpoint |
+|---|---|---|
+| `list_clients` | List clients with company names, contacts, and details | `GET /api/clients` |
+| `list_capacities` | List work capacity configurations and weekly schedules | `GET /api/capacities` |
 
 ### Lookup
 
-| Tool | Description |
-|---|---|
-| `lookup_person` | Find a person by ID or name from local synced data (no API call) |
-| `lookup_project` | Find a project by ID or name from local synced data (no API call) |
-| `lookup_client` | Find a client by ID or name from local synced data (no API call) |
-| `lookup_project_type` | Find a project type by ID or name from local synced data (no API call) |
+| Tool | Description | Source |
+|---|---|---|
+| `lookup_person` | Find a person by ID or name from local synced data | `persons.json` |
+| `lookup_project` | Find a project by ID or name from local synced data | `projects.json` |
+| `lookup_client` | Find a client by ID or name from local synced data | `clients.json` |
+| `lookup_project_type` | Find a project type by ID or name from local synced data | `project-types.json` |
 
 ### Sync
 
-| Tool | Description |
-|---|---|
-| `sync` | Fetch persons, projects, clients, and project types from Wethod (requires SF6SESSID session cookie) |
+| Tool | Description | Endpoint |
+|---|---|---|
+| `sync` | Fetch persons, projects, clients, and project types (requires SF6SESSID session cookie) | `GET /report/timetracking` `GET /api/clients` `GET /api/projects` |
 
 ## Prompts (2)
 

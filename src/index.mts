@@ -34,7 +34,6 @@ import { registerGetWeeklyPlan } from "./tools/get-weekly-plan.mjs"
 import { registerListBudgets } from "./tools/list-budgets.mjs"
 import { registerListCapacities } from "./tools/list-capacities.mjs"
 import { registerListClients } from "./tools/list-clients.mjs"
-import { registerListPersons } from "./tools/list-persons.mjs"
 import { registerListProductionPlans } from "./tools/list-production-plans.mjs"
 import { registerListProductions } from "./tools/list-productions.mjs"
 import { registerListProjects } from "./tools/list-projects.mjs"
@@ -83,9 +82,6 @@ export function registerAllTools(
 
   // Team
   registerGetTeamTimesheet(server, client)
-
-  // People
-  registerListPersons(server, client)
 
   // Projects
   registerListProjects(server, client)
