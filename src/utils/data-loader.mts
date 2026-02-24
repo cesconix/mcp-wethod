@@ -66,7 +66,7 @@ function parsePersons(dataDir: string): Map<number, PersonEntry> {
         id,
         name: m[2],
         surname: m[3],
-        is_external: m[4] === "true"
+        is_external: m[4] === "true",
       })
     }
   }
@@ -107,7 +107,7 @@ function parseProjects(dataDir: string): Map<number, ProjectEntry> {
         job_order: current.job_order ?? null,
         client: current.client ?? null,
         client_id: current.client_id ?? null,
-        pm_id: current.pm_id ?? null
+        pm_id: current.pm_id ?? null,
       })
     }
   }
@@ -152,7 +152,6 @@ function parseProjects(dataDir: string): Map<number, ProjectEntry> {
     if (pmMatch) {
       const v = pmMatch[1].trim()
       current.pm_id = v === "null" ? null : Number(v)
-      continue
     }
   }
   flush()

@@ -7,8 +7,8 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
-import type { DataLoader } from "../utils/data-loader.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
+import type { DataLoader } from "../utils/data-loader.mjs"
 
 export function registerLookupClient(server: McpServer, data: DataLoader) {
   server.registerTool(
@@ -18,17 +18,13 @@ export function registerLookupClient(server: McpServer, data: DataLoader) {
       description:
         "Find a client by ID or search by name. Reads from local synced data (no API call). Returns id and corporate name.",
       inputSchema: {
-        id: z
-          .number()
-          .int()
-          .optional()
-          .describe("Client ID for direct lookup"),
+        id: z.number().int().optional().describe("Client ID for direct lookup"),
         search: z
           .string()
           .optional()
-          .describe("Search query to filter by client name (case-insensitive)")
+          .describe("Search query to filter by client name (case-insensitive)"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       const clients = data.getClients()
@@ -38,9 +34,9 @@ export function registerLookupClient(server: McpServer, data: DataLoader) {
           content: [
             {
               type: "text" as const,
-              text: "SYNC REQUIRED: Client data not found. Run the sync tool to populate local data."
-            }
-          ]
+              text: "SYNC REQUIRED: Client data not found. Run the sync tool to populate local data.",
+            },
+          ],
         }
       }
 
@@ -52,15 +48,13 @@ export function registerLookupClient(server: McpServer, data: DataLoader) {
             content: [
               {
                 type: "text" as const,
-                text: `Client ${params.id} not found.`
-              }
-            ]
+                text: `Client ${params.id} not found.`,
+              },
+            ],
           }
         }
         return {
-          content: [
-            { type: "text" as const, text: `${c.id}: ${c.name}` }
-          ]
+          content: [{ type: "text" as const, text: `${c.id}: ${c.name}` }],
         }
       }
 
@@ -68,7 +62,7 @@ export function registerLookupClient(server: McpServer, data: DataLoader) {
       if (params.search) {
         const query = params.search.toLowerCase()
         const matches = [...clients.values()].filter((c) =>
-          c.name.toLowerCase().includes(query)
+          c.name.toLowerCase().includes(query),
         )
 
         if (matches.length === 0) {
@@ -76,15 +70,15 @@ export function registerLookupClient(server: McpServer, data: DataLoader) {
             content: [
               {
                 type: "text" as const,
-                text: `No client matching "${params.search}".`
-              }
-            ]
+                text: `No client matching "${params.search}".`,
+              },
+            ],
           }
         }
 
         const lines = matches.map((c) => `${c.id}: ${c.name}`)
         return {
-          content: [{ type: "text" as const, text: lines.join("\n") }]
+          content: [{ type: "text" as const, text: lines.join("\n") }],
         }
       }
 
@@ -92,10 +86,10 @@ export function registerLookupClient(server: McpServer, data: DataLoader) {
         content: [
           {
             type: "text" as const,
-            text: `${clients.size} clients available. Provide id or search.`
-          }
-        ]
+            text: `${clients.size} clients available. Provide id or search.`,
+          },
+        ],
       }
-    }
+    },
   )
 }

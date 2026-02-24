@@ -8,12 +8,17 @@
   "bin": {
     "mcp-wethod": "./bin.mjs"
   },
-  "files": ["dist", "bin.mjs"],
+  "files": [
+    "dist",
+    "bin.mjs"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "tsc --noEmit",
+    "lint": "biome check src/ tests/",
+    "format": "biome check --write src/ tests/",
+    "typecheck": "tsc --noEmit",
     "prepublishOnly": "tsc"
   },
   "dependencies": {
@@ -21,6 +26,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.4.4",
     "@types/node": "^22.18.12",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
@@ -28,7 +34,12 @@
   "engines": {
     "node": ">=22"
   },
-  "keywords": ["mcp", "wethod", "timesheet", "project-management"],
+  "keywords": [
+    "mcp",
+    "wethod",
+    "timesheet",
+    "project-management"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",

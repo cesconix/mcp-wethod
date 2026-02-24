@@ -8,12 +8,19 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
-import type { DataLoader } from "../utils/data-loader.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
+import type { DataLoader } from "../utils/data-loader.mjs"
 
 function formatProject(
-  p: { id: number; name: string; job_order: string | null; client: string | null; client_id: number | null; pm_id: number | null },
-  data: DataLoader
+  p: {
+    id: number
+    name: string
+    job_order: string | null
+    client: string | null
+    client_id: number | null
+    pm_id: number | null
+  },
+  data: DataLoader,
 ): string {
   const parts = [`${p.id}: ${p.name}`]
   if (p.client) parts.push(`client: ${p.client}`)
@@ -39,10 +46,10 @@ export function registerLookupProject(server: McpServer, data: DataLoader) {
           .string()
           .optional()
           .describe(
-            "Search query to filter by project name or client name (case-insensitive)"
-          )
+            "Search query to filter by project name or client name (case-insensitive)",
+          ),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       const projects = data.getProjects()
@@ -52,9 +59,9 @@ export function registerLookupProject(server: McpServer, data: DataLoader) {
           content: [
             {
               type: "text" as const,
-              text: "SYNC REQUIRED: Project data not found. Run the sync tool to populate local data."
-            }
-          ]
+              text: "SYNC REQUIRED: Project data not found. Run the sync tool to populate local data.",
+            },
+          ],
         }
       }
 
@@ -66,15 +73,13 @@ export function registerLookupProject(server: McpServer, data: DataLoader) {
             content: [
               {
                 type: "text" as const,
-                text: `Project ${params.id} not found.`
-              }
-            ]
+                text: `Project ${params.id} not found.`,
+              },
+            ],
           }
         }
         return {
-          content: [
-            { type: "text" as const, text: formatProject(p, data) }
-          ]
+          content: [{ type: "text" as const, text: formatProject(p, data) }],
         }
       }
 
@@ -84,7 +89,7 @@ export function registerLookupProject(server: McpServer, data: DataLoader) {
         const matches = [...projects.values()].filter(
           (p) =>
             p.name.toLowerCase().includes(query) ||
-            (p.client && p.client.toLowerCase().includes(query))
+            p.client?.toLowerCase().includes(query),
         )
 
         if (matches.length === 0) {
@@ -92,15 +97,15 @@ export function registerLookupProject(server: McpServer, data: DataLoader) {
             content: [
               {
                 type: "text" as const,
-                text: `No project matching "${params.search}".`
-              }
-            ]
+                text: `No project matching "${params.search}".`,
+              },
+            ],
           }
         }
 
         const lines = matches.map((p) => formatProject(p, data))
         return {
-          content: [{ type: "text" as const, text: lines.join("\n") }]
+          content: [{ type: "text" as const, text: lines.join("\n") }],
         }
       }
 
@@ -108,10 +113,10 @@ export function registerLookupProject(server: McpServer, data: DataLoader) {
         content: [
           {
             type: "text" as const,
-            text: `${projects.size} projects available. Provide id or search.`
-          }
-        ]
+            text: `${projects.size} projects available. Provide id or search.`,
+          },
+        ],
       }
-    }
+    },
   )
 }

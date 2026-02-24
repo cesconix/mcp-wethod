@@ -45,10 +45,7 @@ import { registerLookupPerson } from "./tools/lookup-person.mjs"
 import { registerLookupProject } from "./tools/lookup-project.mjs"
 import { registerSync } from "./tools/sync.mjs"
 import { registerUpdateTimesheet } from "./tools/update-timesheet.mjs"
-import {
-  WethodClient,
-  type WethodClientOptions
-} from "./utils/client.mjs"
+import { WethodClient, type WethodClientOptions } from "./utils/client.mjs"
 import { DataLoader } from "./utils/data-loader.mjs"
 
 export { WethodClient, DataLoader, registerSync }
@@ -64,7 +61,7 @@ export type { WethodClientOptions }
 export function registerAllTools(
   server: McpServer,
   client: WethodClient,
-  data: DataLoader
+  data: DataLoader,
 ) {
   // Local data lookups (from synced YAML files — required before using other tools)
   registerLookupPerson(server, data)
@@ -122,7 +119,7 @@ export function registerAll(
   server: McpServer,
   client: WethodClient,
   data: DataLoader,
-  dataDir: string
+  dataDir: string,
 ) {
   registerAllTools(server, client, data)
   registerSync(server, client, dataDir)
@@ -134,15 +131,14 @@ export function registerAll(
  * Used by the CLI entry point (`bin.mjs`) when running as a subprocess.
  */
 export async function createMcpServer(
-  options: WethodClientOptions & { dataDir: string }
+  options: WethodClientOptions & { dataDir: string },
 ) {
   const client = new WethodClient(options)
   const data = new DataLoader(options.dataDir)
 
-
   const server = new McpServerImpl({
     name: "wethod",
-    version: "0.1.0"
+    version: "0.1.0",
   })
 
   registerAll(server, client, data, options.dataDir)

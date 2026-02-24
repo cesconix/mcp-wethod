@@ -22,10 +22,7 @@ type Client = {
   website: string | null
 }
 
-export function registerListClients(
-  server: McpServer,
-  client: WethodClient
-) {
+export function registerListClients(server: McpServer, client: WethodClient) {
   server.registerTool(
     "list_clients",
     {
@@ -45,28 +42,22 @@ export function registerListClients(
           .int()
           .min(0)
           .default(0)
-          .describe("Number of results to skip for pagination")
+          .describe("Number of results to skip for pagination"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
-        const clients = await client.request<Client[]>(
-          "GET",
-          "/api/clients",
-          {
-            params: {
-              limit: params.limit,
-              offset: params.offset
-            }
-          }
-        )
+        const clients = await client.request<Client[]>("GET", "/api/clients", {
+          params: {
+            limit: params.limit,
+            offset: params.offset,
+          },
+        })
 
         if (clients.length === 0) {
           return {
-            content: [
-              { type: "text" as const, text: "No clients found." }
-            ]
+            content: [{ type: "text" as const, text: "No clients found." }],
           }
         }
 
@@ -79,11 +70,11 @@ export function registerListClients(
         const text = `Found ${clients.length} client(s):\n\n${lines.join("\n")}`
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

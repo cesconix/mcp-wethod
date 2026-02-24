@@ -12,7 +12,6 @@ import type { WethodClient } from "../utils/client.mjs"
 import {
   READONLY_ANNOTATIONS,
   WORK_HOURS_PER_DAY,
-  WEEK_TOTAL_HOURS
 } from "../utils/constants.mjs"
 import { formatHours, formatToolError } from "../utils/format.mjs"
 
@@ -54,7 +53,7 @@ function formatISODate(d: Date): string {
  * Adds N days to a YYYY-MM-DD string and returns YYYY-MM-DD.
  */
 function addDays(dateStr: string, n: number): string {
-  const d = new Date(dateStr + "T00:00:00")
+  const d = new Date(`${dateStr}T00:00:00`)
   d.setDate(d.getDate() + n)
   return formatISODate(d)
 }
@@ -69,7 +68,7 @@ function isTodayOrPast(dateStr: string): boolean {
 
 export function registerCheckTimesheetStatus(
   server: McpServer,
-  client: WethodClient
+  client: WethodClient,
 ) {
   server.registerTool(
     "check_timesheet_status",
@@ -86,10 +85,10 @@ export function registerCheckTimesheetStatus(
           .string()
           .optional()
           .describe(
-            "Monday date of the week to check (YYYY-MM-DD). Defaults to current week."
-          )
+            "Monday date of the week to check (YYYY-MM-DD). Defaults to current week.",
+          ),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -102,15 +101,15 @@ export function registerCheckTimesheetStatus(
           {
             params: {
               person_id: params.person_id,
-              date: `gte:${weekMonday}`
-            }
-          }
+              date: `gte:${weekMonday}`,
+            },
+          },
         )
 
         // Filter to just this week (Mon through Sun)
         const weekEnd = addDays(weekMonday, 6)
         const weekTimesheets = timesheets.filter(
-          (ts) => ts.date >= weekMonday && ts.date <= weekEnd
+          (ts) => ts.date >= weekMonday && ts.date <= weekEnd,
         )
 
         // Build hours map: date -> total hours
@@ -139,7 +138,7 @@ export function registerCheckTimesheetStatus(
 
           const status = missing > 0 ? `MISSING ${missing}h` : "OK"
           dayDetails.push(
-            `${dayName.toUpperCase()} (${dayDate}): ${formatHours(hours, WORK_HOURS_PER_DAY)} ${status}`
+            `${dayName.toUpperCase()} (${dayDate}): ${formatHours(hours, WORK_HOURS_PER_DAY)} ${status}`,
           )
 
           if (missing > 0) {
@@ -151,20 +150,17 @@ export function registerCheckTimesheetStatus(
         const missingHours = expectedHours - totalHours
         const isComplete = missingHours <= 0
 
-        const lines: string[] = [
-          `TIMESHEET STATUS - Week of ${weekMonday}`,
-          ""
-        ]
+        const lines: string[] = [`TIMESHEET STATUS - Week of ${weekMonday}`, ""]
 
         if (isComplete) {
           lines.push(
             `Timesheet complete! (${totalHours}/${expectedHours}h)`,
-            ""
+            "",
           )
         } else {
           lines.push(
             `Missing ${missingHours}h out of ${expectedHours}h expected.`,
-            ""
+            "",
           )
         }
 
@@ -176,11 +172,11 @@ export function registerCheckTimesheetStatus(
         }
 
         return {
-          content: [{ type: "text" as const, text: lines.join("\n") }]
+          content: [{ type: "text" as const, text: lines.join("\n") }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

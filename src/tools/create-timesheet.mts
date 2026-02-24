@@ -24,7 +24,7 @@ type Timesheet = {
 
 export function registerCreateTimesheet(
   server: McpServer,
-  client: WethodClient
+  client: WethodClient,
 ) {
   server.registerTool(
     "create_timesheet",
@@ -53,10 +53,10 @@ export function registerCreateTimesheet(
         confirm: z
           .boolean()
           .describe(
-            "Must be true to execute. Show a recap and get user confirmation first."
-          )
+            "Must be true to execute. Show a recap and get user confirmation first.",
+          ),
       },
-      annotations: WRITE_ANNOTATIONS
+      annotations: WRITE_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -66,9 +66,9 @@ export function registerCreateTimesheet(
             content: [
               {
                 type: "text" as const,
-                text: "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true."
-              }
-            ]
+                text: "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true.",
+              },
+            ],
           }
         }
 
@@ -79,9 +79,9 @@ export function registerCreateTimesheet(
           {
             params: {
               person_id: params.person_id,
-              date: params.date
-            }
-          }
+              date: params.date,
+            },
+          },
         )
 
         const existingHours = existing.reduce((sum, ts) => sum + ts.hours, 0)
@@ -93,9 +93,9 @@ export function registerCreateTimesheet(
             content: [
               {
                 type: "text" as const,
-                text: `Cannot create: adding ${params.hours}h would exceed the daily limit.\nExisting hours for ${params.date}: ${existingHours}h\nTotal would be: ${totalHours}h (limit: ${WORK_HOURS_PER_DAY}h)`
-              }
-            ]
+                text: `Cannot create: adding ${params.hours}h would exceed the daily limit.\nExisting hours for ${params.date}: ${existingHours}h\nTotal would be: ${totalHours}h (limit: ${WORK_HOURS_PER_DAY}h)`,
+              },
+            ],
           }
         }
 
@@ -110,9 +110,9 @@ export function registerCreateTimesheet(
               project_id: params.project_id,
               person_id: params.person_id,
               mode: "DAILY",
-              notes: params.notes
-            }
-          }
+              notes: params.notes,
+            },
+          },
         )
 
         const remaining = WORK_HOURS_PER_DAY - totalHours
@@ -130,15 +130,15 @@ export function registerCreateTimesheet(
           `Project: ${timesheet.project_id}`,
           `Notes: ${timesheet.notes ?? "N/A"}`,
           "",
-          statusLine
+          statusLine,
         ].join("\n")
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

@@ -27,7 +27,7 @@ type Capacity = {
 
 export function registerListCapacities(
   server: McpServer,
-  client: WethodClient
+  client: WethodClient,
 ) {
   server.registerTool(
     "list_capacities",
@@ -48,9 +48,9 @@ export function registerListCapacities(
           .int()
           .min(0)
           .default(0)
-          .describe("Number of results to skip for pagination")
+          .describe("Number of results to skip for pagination"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -60,16 +60,14 @@ export function registerListCapacities(
           {
             params: {
               limit: params.limit,
-              offset: params.offset
-            }
-          }
+              offset: params.offset,
+            },
+          },
         )
 
         if (capacities.length === 0) {
           return {
-            content: [
-              { type: "text" as const, text: "No capacities found." }
-            ]
+            content: [{ type: "text" as const, text: "No capacities found." }],
           }
         }
 
@@ -90,11 +88,11 @@ export function registerListCapacities(
         const text = `Found ${capacities.length} capacity(ies):\n\n${lines.join("\n")}`
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

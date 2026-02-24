@@ -20,7 +20,7 @@ export function formatToolError(error: unknown) {
 
   return {
     isError: true as const,
-    content: [{ type: "text" as const, text }]
+    content: [{ type: "text" as const, text }],
   }
 }
 

@@ -9,10 +9,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
-import {
-  READONLY_ANNOTATIONS,
-  WEEK_TOTAL_HOURS
-} from "../utils/constants.mjs"
+import { READONLY_ANNOTATIONS, WEEK_TOTAL_HOURS } from "../utils/constants.mjs"
 import { formatToolError } from "../utils/format.mjs"
 
 type Allocation = {
@@ -50,14 +47,14 @@ function formatISODate(d: Date): string {
  * Adds N days to a YYYY-MM-DD string and returns YYYY-MM-DD.
  */
 function addDays(dateStr: string, n: number): string {
-  const d = new Date(dateStr + "T00:00:00")
+  const d = new Date(`${dateStr}T00:00:00`)
   d.setDate(d.getDate() + n)
   return formatISODate(d)
 }
 
 export function registerGetAvailability(
   server: McpServer,
-  client: WethodClient
+  client: WethodClient,
 ) {
   server.registerTool(
     "get_availability",
@@ -73,10 +70,10 @@ export function registerGetAvailability(
           .string()
           .optional()
           .describe(
-            "Monday date of the week to check (YYYY-MM-DD). Defaults to current week."
-          )
+            "Monday date of the week to check (YYYY-MM-DD). Defaults to current week.",
+          ),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -94,9 +91,9 @@ export function registerGetAvailability(
                   person_id: personId,
                   date: `gte:${weekMonday}`,
                   limit: 100,
-                  offset: 0
-                }
-              }
+                  offset: 0,
+                },
+              },
             )
 
             // Filter to Mon-Fri range and exclude soft-deleted
@@ -104,42 +101,35 @@ export function registerGetAvailability(
               (a) =>
                 a.date >= weekMonday &&
                 a.date <= weekFriday &&
-                a.deleted_at === null
+                a.deleted_at === null,
             )
 
             const totalHours = filtered.reduce((sum, a) => sum + a.hours, 0)
             return { personId, totalHours }
-          })
+          }),
         )
 
         // Format output
-        const lines: string[] = [
-          `AVAILABILITY — Week of ${weekMonday}`,
-          ""
-        ]
+        const lines: string[] = [`AVAILABILITY — Week of ${weekMonday}`, ""]
 
         for (const { personId, totalHours } of results) {
           const available = Math.max(0, WEEK_TOTAL_HOURS - totalHours)
-          const utilization = Math.round(
-            (totalHours / WEEK_TOTAL_HOURS) * 100
-          )
+          const utilization = Math.round((totalHours / WEEK_TOTAL_HOURS) * 100)
 
           const availPart =
-            available === 0
-              ? "fully booked"
-              : `${available}h available`
+            available === 0 ? "fully booked" : `${available}h available`
 
           lines.push(
-            `Person ${personId}: ${totalHours}/${WEEK_TOTAL_HOURS}h allocated (${utilization}%) — ${availPart}`
+            `Person ${personId}: ${totalHours}/${WEEK_TOTAL_HOURS}h allocated (${utilization}%) — ${availPart}`,
           )
         }
 
         return {
-          content: [{ type: "text" as const, text: lines.join("\n") }]
+          content: [{ type: "text" as const, text: lines.join("\n") }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

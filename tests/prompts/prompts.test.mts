@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect, it } from "vitest"
 import { registerTimesheetReminderPrompt } from "../../src/prompts/timesheet-reminder.mjs"
 import { registerWeeklySummaryPrompt } from "../../src/prompts/weekly-summary.mjs"
 

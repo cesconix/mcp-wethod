@@ -13,7 +13,7 @@ export function registerTimesheetReminderPrompt(server: McpServer) {
     {
       title: "Timesheet Reminder",
       description:
-        "Check team timesheet status and generate friendly reminders"
+        "Check team timesheet status and generate friendly reminders",
     },
     () => {
       const text = `Check timesheet completion for the team. Follow these steps:
@@ -24,8 +24,8 @@ export function registerTimesheetReminderPrompt(server: McpServer) {
 4. Distinguish between Slack (direct send) and Teams (proxy message with multiple tones: formale, professionale, informale, diretto).`
 
       return {
-        messages: [{ role: "user" as const, content: { type: "text", text } }]
+        messages: [{ role: "user" as const, content: { type: "text", text } }],
       }
-    }
+    },
   )
 }

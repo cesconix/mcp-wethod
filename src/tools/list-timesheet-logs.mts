@@ -26,7 +26,7 @@ type TimesheetLog = {
 
 export function registerListTimesheetLogs(
   server: McpServer,
-  client: WethodClient
+  client: WethodClient,
 ) {
   server.registerTool(
     "list_timesheet_logs",
@@ -48,11 +48,7 @@ export function registerListTimesheetLogs(
           .min(0)
           .default(0)
           .describe("Number of results to skip for pagination"),
-        person_id: z
-          .number()
-          .int()
-          .optional()
-          .describe("Filter by person ID"),
+        person_id: z.number().int().optional().describe("Filter by person ID"),
         project_id: z
           .number()
           .int()
@@ -61,11 +57,9 @@ export function registerListTimesheetLogs(
         date: z
           .string()
           .optional()
-          .describe(
-            "Date filter with operator (e.g. 'gt:2026-01-01')"
-          )
+          .describe("Date filter with operator (e.g. 'gt:2026-01-01')"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -78,16 +72,16 @@ export function registerListTimesheetLogs(
               offset: params.offset,
               person_id: params.person_id,
               project_id: params.project_id,
-              date: params.date
-            }
-          }
+              date: params.date,
+            },
+          },
         )
 
         if (logs.length === 0) {
           return {
             content: [
-              { type: "text" as const, text: "No timesheet logs found." }
-            ]
+              { type: "text" as const, text: "No timesheet logs found." },
+            ],
           }
         }
 
@@ -98,11 +92,11 @@ export function registerListTimesheetLogs(
         const text = `Found ${logs.length} timesheet log(s):\n\n${lines.join("\n")}`
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

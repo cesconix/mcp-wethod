@@ -11,7 +11,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import {
   READONLY_ANNOTATIONS,
-  WORK_HOURS_PER_DAY
+  WORK_HOURS_PER_DAY,
 } from "../utils/constants.mjs"
 import { formatToolError } from "../utils/format.mjs"
 
@@ -53,7 +53,7 @@ function formatISODate(d: Date): string {
  * Adds N days to a YYYY-MM-DD string and returns YYYY-MM-DD.
  */
 function addDays(dateStr: string, n: number): string {
-  const d = new Date(dateStr + "T00:00:00")
+  const d = new Date(`${dateStr}T00:00:00`)
   d.setDate(d.getDate() + n)
   return formatISODate(d)
 }
@@ -68,7 +68,7 @@ function isTodayOrPast(dateStr: string): boolean {
 
 export function registerGetTeamTimesheet(
   server: McpServer,
-  client: WethodClient
+  client: WethodClient,
 ) {
   server.registerTool(
     "get_team_timesheet",
@@ -84,10 +84,10 @@ export function registerGetTeamTimesheet(
           .string()
           .optional()
           .describe(
-            "Monday date of the week to check (YYYY-MM-DD). Defaults to current week."
-          )
+            "Monday date of the week to check (YYYY-MM-DD). Defaults to current week.",
+          ),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -111,23 +111,20 @@ export function registerGetTeamTimesheet(
               {
                 params: {
                   person_id: personId,
-                  date: `gte:${weekMonday}`
-                }
-              }
+                  date: `gte:${weekMonday}`,
+                },
+              },
             )
 
             // Filter to just this week (Mon through Sun)
             const weekTimesheets = timesheets.filter(
-              (ts) => ts.date >= weekMonday && ts.date <= weekEnd
+              (ts) => ts.date >= weekMonday && ts.date <= weekEnd,
             )
 
             // Build hours per day
             const hoursMap = new Map<string, number>()
             for (const ts of weekTimesheets) {
-              hoursMap.set(
-                ts.date,
-                (hoursMap.get(ts.date) ?? 0) + ts.hours
-              )
+              hoursMap.set(ts.date, (hoursMap.get(ts.date) ?? 0) + ts.hours)
             }
 
             // Calculate totals and find incomplete days
@@ -147,40 +144,35 @@ export function registerGetTeamTimesheet(
             }
 
             return { personId, totalHours, incompleteDays }
-          })
+          }),
         )
 
         // Format output
-        const lines: string[] = [
-          `TEAM TIMESHEET — Week of ${weekMonday}`,
-          ""
-        ]
+        const lines: string[] = [`TEAM TIMESHEET — Week of ${weekMonday}`, ""]
 
         for (const { personId, totalHours, incompleteDays } of results) {
           const missing = expectedHours - totalHours
 
           if (missing <= 0) {
             lines.push(
-              `Person ${personId}: ${totalHours}/${expectedHours}h — complete`
+              `Person ${personId}: ${totalHours}/${expectedHours}h — complete`,
             )
           } else if (totalHours === 0) {
-            lines.push(
-              `Person ${personId}: 0/${expectedHours}h — not started`
-            )
+            lines.push(`Person ${personId}: 0/${expectedHours}h — not started`)
           } else {
             const daysList = incompleteDays.join(", ")
             lines.push(
-              `Person ${personId}: ${totalHours}/${expectedHours}h — ${missing}h missing (${daysList} incompleti)`
+              `Person ${personId}: ${totalHours}/${expectedHours}h — ${missing}h missing (${daysList} incompleti)`,
             )
           }
         }
 
         return {
-          content: [{ type: "text" as const, text: lines.join("\n") }]
+          content: [{ type: "text" as const, text: lines.join("\n") }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

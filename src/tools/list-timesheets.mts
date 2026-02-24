@@ -24,7 +24,7 @@ type Timesheet = {
 
 export function registerListTimesheets(
   server: McpServer,
-  client: WethodClient
+  client: WethodClient,
 ) {
   server.registerTool(
     "list_timesheets",
@@ -46,7 +46,7 @@ export function registerListTimesheets(
           .string()
           .optional()
           .describe(
-            "Date filter with operator (e.g. 'gt:2026-01-01T00:00:00+01:00')"
+            "Date filter with operator (e.g. 'gt:2026-01-01T00:00:00+01:00')",
           ),
         limit: z
           .number()
@@ -60,9 +60,9 @@ export function registerListTimesheets(
           .int()
           .min(0)
           .default(0)
-          .describe("Number of results to skip for pagination")
+          .describe("Number of results to skip for pagination"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -75,16 +75,14 @@ export function registerListTimesheets(
               project_id: params.project_id,
               date: params.date,
               limit: params.limit,
-              offset: params.offset
-            }
-          }
+              offset: params.offset,
+            },
+          },
         )
 
         if (timesheets.length === 0) {
           return {
-            content: [
-              { type: "text" as const, text: "No timesheets found." }
-            ]
+            content: [{ type: "text" as const, text: "No timesheets found." }],
           }
         }
 
@@ -97,11 +95,11 @@ export function registerListTimesheets(
         const text = `Found ${timesheets.length} timesheet(s):\n\n${lines.join("\n")}`
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

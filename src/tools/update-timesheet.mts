@@ -24,7 +24,7 @@ type Timesheet = {
 
 export function registerUpdateTimesheet(
   server: McpServer,
-  client: WethodClient
+  client: WethodClient,
 ) {
   server.registerTool(
     "update_timesheet",
@@ -44,10 +44,10 @@ export function registerUpdateTimesheet(
         confirm: z
           .boolean()
           .describe(
-            "Must be true to execute. Show a recap and get user confirmation first."
-          )
+            "Must be true to execute. Show a recap and get user confirmation first.",
+          ),
       },
-      annotations: WRITE_ANNOTATIONS
+      annotations: WRITE_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -57,9 +57,9 @@ export function registerUpdateTimesheet(
             content: [
               {
                 type: "text" as const,
-                text: "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true."
-              }
-            ]
+                text: "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true.",
+              },
+            ],
           }
         }
 
@@ -74,16 +74,16 @@ export function registerUpdateTimesheet(
             content: [
               {
                 type: "text" as const,
-                text: "Nothing to update. Provide at least one of: hours, notes."
-              }
-            ]
+                text: "Nothing to update. Provide at least one of: hours, notes.",
+              },
+            ],
           }
         }
 
         const timesheet = await client.request<Timesheet>(
           "PATCH",
           `/api/timesheets/${params.id}`,
-          { body }
+          { body },
         )
 
         const text = [
@@ -93,15 +93,15 @@ export function registerUpdateTimesheet(
           `Date: ${timesheet.date}`,
           `Hours: ${timesheet.hours}h`,
           `Project: ${timesheet.project_id}`,
-          `Notes: ${timesheet.notes ?? "N/A"}`
+          `Notes: ${timesheet.notes ?? "N/A"}`,
         ].join("\n")
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }
