@@ -120,9 +120,10 @@ export function registerAll(
   client: WethodClient,
   data: DataLoader,
   dataDir: string,
+  company: string,
 ) {
   registerAllTools(server, client, data)
-  registerSync(server, client, dataDir)
+  registerSync(server, client, dataDir, company)
   registerAllPrompts(server)
 }
 
@@ -141,7 +142,7 @@ export async function createMcpServer(
     version: "0.1.0",
   })
 
-  registerAll(server, client, data, options.dataDir)
+  registerAll(server, client, data, options.dataDir, options.company)
 
   // Stdio transport: the AI client communicates via the process's
   // stdin/stdout streams (standard MCP subprocess model).
