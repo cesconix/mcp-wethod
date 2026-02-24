@@ -1,8 +1,8 @@
 /**
  * Tool: lookup_project
  *
- * Looks up a project by ID or searches by name from local YAML data.
- * No API call — reads from ~/.mcp-wethod/{company}/projects.yaml.
+ * Looks up a project by ID or searches by name from local JSON data.
+ * No API call — reads from ~/.mcp-wethod/{company}/projects.json.
  * Includes client name and PM name resolved from local data.
  */
 

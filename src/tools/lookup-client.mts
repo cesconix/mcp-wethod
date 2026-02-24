@@ -1,8 +1,8 @@
 /**
  * Tool: lookup_client
  *
- * Looks up a client by ID or searches by name from local YAML data.
- * No API call — reads from ~/.mcp-wethod/{company}/clients.yaml.
+ * Looks up a client by ID or searches by name from local JSON data.
+ * No API call — reads from ~/.mcp-wethod/{company}/clients.json.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
