@@ -22,6 +22,25 @@ type Timesheet = {
   person_id: number
 }
 
+const DAY_OFFSETS: Record<string, number> = {
+  mon: 0,
+  tue: 1,
+  wed: 2,
+  thu: 3,
+  fri: 4,
+  sat: 5,
+  sun: 6,
+}
+
+function addDays(dateStr: string, n: number): string {
+  const d = new Date(`${dateStr}T00:00:00`)
+  d.setDate(d.getDate() + n)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const day = String(d.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
 export function registerCreateTimesheet(
   server: McpServer,
   client: WethodClient,
@@ -72,7 +91,10 @@ export function registerCreateTimesheet(
           }
         }
 
-        // Fetch existing timesheets for the same person + date to validate hours
+        // Compute the actual calendar date from the Monday + day offset
+        const actualDate = addDays(params.date, DAY_OFFSETS[params.day])
+
+        // Fetch existing timesheets for the week, then filter by actual day
         const existing = await client.request<Timesheet[]>(
           "GET",
           "/api/timesheets",
@@ -84,7 +106,9 @@ export function registerCreateTimesheet(
           },
         )
 
-        const existingHours = existing.reduce((sum, ts) => sum + ts.hours, 0)
+        const existingHours = existing
+          .filter((ts) => ts.date === actualDate)
+          .reduce((sum, ts) => sum + ts.hours, 0)
         const totalHours = existingHours + params.hours
 
         if (totalHours > WORK_HOURS_PER_DAY) {
@@ -93,7 +117,7 @@ export function registerCreateTimesheet(
             content: [
               {
                 type: "text" as const,
-                text: `Cannot create: adding ${params.hours}h would exceed the daily limit.\nExisting hours for ${params.date}: ${existingHours}h\nTotal would be: ${totalHours}h (limit: ${WORK_HOURS_PER_DAY}h)`,
+                text: `Cannot create: adding ${params.hours}h would exceed the daily limit.\nExisting hours for ${actualDate}: ${existingHours}h\nTotal would be: ${totalHours}h (limit: ${WORK_HOURS_PER_DAY}h)`,
               },
             ],
           }
@@ -104,7 +128,7 @@ export function registerCreateTimesheet(
           "/api/timesheets",
           {
             body: {
-              date: params.date,
+              date: actualDate,
               day: params.day,
               hours: params.hours,
               project_id: params.project_id,
@@ -118,8 +142,8 @@ export function registerCreateTimesheet(
         const remaining = WORK_HOURS_PER_DAY - totalHours
         const statusLine =
           remaining > 0
-            ? `Remaining for ${params.date}: ${remaining}h`
-            : `Day ${params.date} is now complete (${WORK_HOURS_PER_DAY}/${WORK_HOURS_PER_DAY}h)`
+            ? `Remaining for ${actualDate}: ${remaining}h`
+            : `Day ${actualDate} is now complete (${WORK_HOURS_PER_DAY}/${WORK_HOURS_PER_DAY}h)`
 
         const text = [
           "Timesheet created successfully.",
