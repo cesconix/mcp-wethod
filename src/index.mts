@@ -43,6 +43,7 @@ import { registerListTimesheets } from "./tools/list-timesheets.mjs"
 import { registerLookupClient } from "./tools/lookup-client.mjs"
 import { registerLookupPerson } from "./tools/lookup-person.mjs"
 import { registerLookupProject } from "./tools/lookup-project.mjs"
+import { registerSync } from "./tools/sync.mjs"
 import { registerUpdateTimesheet } from "./tools/update-timesheet.mjs"
 import {
   WethodClient,
@@ -50,7 +51,7 @@ import {
 } from "./utils/client.mjs"
 import { DataLoader } from "./utils/data-loader.mjs"
 
-export { WethodClient, DataLoader }
+export { WethodClient, DataLoader, registerSync }
 export type { WethodClientOptions }
 
 /**
@@ -120,9 +121,11 @@ export function registerAllPrompts(server: McpServer) {
 export function registerAll(
   server: McpServer,
   client: WethodClient,
-  data: DataLoader
+  data: DataLoader,
+  dataDir: string
 ) {
   registerAllTools(server, client, data)
+  registerSync(server, client, dataDir)
   registerAllPrompts(server)
 }
 
@@ -142,7 +145,7 @@ export async function createMcpServer(
     version: "0.1.0"
   })
 
-  registerAll(server, client, data)
+  registerAll(server, client, data, options.dataDir)
 
   // Stdio transport: the AI client communicates via the process's
   // stdin/stdout streams (standard MCP subprocess model).
