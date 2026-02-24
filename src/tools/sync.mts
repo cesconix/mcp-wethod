@@ -57,10 +57,10 @@ export function generatePersonsYaml(persons: ApiPerson[]): string {
   const lines = ["persons:"]
   for (const p of persons) {
     lines.push(
-      `  ${p.id}: { name: "${p.name}", surname: "${p.surname}", is_external: ${p.is_external} }`
+      `  ${p.id}: { name: "${p.name}", surname: "${p.surname}", is_external: ${p.is_external} }`,
     )
   }
-  return lines.join("\n") + "\n"
+  return `${lines.join("\n")}\n`
 }
 
 /**
@@ -72,19 +72,21 @@ export function generatePersonsYaml(persons: ApiPerson[]): string {
  */
 export function generateProjectsYaml(
   projects: ApiProject[],
-  clientMap: Map<number, string>
+  clientMap: Map<number, string>,
 ): string {
   const lines = ["projects:"]
   for (const p of projects) {
     const clientName = clientMap.get(p.client_id) ?? "unknown"
     lines.push(`  ${p.id}:`)
     lines.push(`    name: "${p.name}"`)
-    lines.push(`    job_order: ${p.job_order !== null ? `"${p.job_order}"` : "null"}`)
+    lines.push(
+      `    job_order: ${p.job_order !== null ? `"${p.job_order}"` : "null"}`,
+    )
     lines.push(`    client: "${clientName}"`)
     lines.push(`    client_id: ${p.client_id ?? "null"}`)
     lines.push(`    pm_id: ${p.pm_id ?? "null"}`)
   }
-  return lines.join("\n") + "\n"
+  return `${lines.join("\n")}\n`
 }
 
 /**
@@ -98,7 +100,7 @@ export function generateClientsYaml(clients: ApiClient[]): string {
   for (const c of clients) {
     lines.push(`  ${c.id}: "${c.corporate_name}"`)
   }
-  return lines.join("\n") + "\n"
+  return `${lines.join("\n")}\n`
 }
 
 // --- Pagination helper ---
@@ -106,14 +108,14 @@ export function generateClientsYaml(clients: ApiClient[]): string {
 async function fetchAllPages<T>(
   client: WethodClient,
   endpoint: string,
-  pageSize = 100
+  pageSize = 100,
 ): Promise<T[]> {
   const all: T[] = []
   let offset = 0
 
   while (true) {
     const page = await client.request<T[]>("GET", endpoint, {
-      params: { limit: pageSize, offset }
+      params: { limit: pageSize, offset },
     })
     all.push(...page)
     if (page.length < pageSize) break
@@ -128,7 +130,7 @@ async function fetchAllPages<T>(
 export function registerSync(
   server: McpServer,
   client: WethodClient,
-  dataDir: string
+  dataDir: string,
 ) {
   server.registerTool(
     "sync",
@@ -137,7 +139,7 @@ export function registerSync(
       description:
         "Fetches persons, projects, and clients from Wethod and saves them as local YAML cache files. Run this before using lookup tools, or to refresh stale data.",
       inputSchema: {},
-      annotations: WRITE_ANNOTATIONS
+      annotations: WRITE_ANNOTATIONS,
     },
     async () => {
       try {
@@ -147,7 +149,7 @@ export function registerSync(
         const [allPersons, allProjects, allClients] = await Promise.all([
           client.request<ApiPerson[]>("GET", "/api/persons"),
           fetchAllPages<ApiProject>(client, "/api/projects"),
-          fetchAllPages<ApiClient>(client, "/api/clients")
+          fetchAllPages<ApiClient>(client, "/api/clients"),
         ])
 
         // Filter out archived persons and projects
@@ -173,15 +175,15 @@ export function registerSync(
 
         const summary = [
           `Sync complete. Saved to ${dataDir}/:`,
-          `${persons.length} persons, ${projects.length} projects, ${allClients.length} clients`
+          `${persons.length} persons, ${projects.length} projects, ${allClients.length} clients`,
         ].join(" ")
 
         return {
-          content: [{ type: "text" as const, text: summary }]
+          content: [{ type: "text" as const, text: summary }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

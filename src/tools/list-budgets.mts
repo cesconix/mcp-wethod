@@ -26,10 +26,7 @@ type Budget = {
   notes: string | null
 }
 
-export function registerListBudgets(
-  server: McpServer,
-  client: WethodClient
-) {
+export function registerListBudgets(server: McpServer, client: WethodClient) {
   server.registerTool(
     "list_budgets",
     {
@@ -54,29 +51,23 @@ export function registerListBudgets(
           .number()
           .int()
           .optional()
-          .describe("Filter by project ID")
+          .describe("Filter by project ID"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
-        const budgets = await client.request<Budget[]>(
-          "GET",
-          "/api/budgets",
-          {
-            params: {
-              limit: params.limit,
-              offset: params.offset,
-              project_id: params.project_id
-            }
-          }
-        )
+        const budgets = await client.request<Budget[]>("GET", "/api/budgets", {
+          params: {
+            limit: params.limit,
+            offset: params.offset,
+            project_id: params.project_id,
+          },
+        })
 
         if (budgets.length === 0) {
           return {
-            content: [
-              { type: "text" as const, text: "No budgets found." }
-            ]
+            content: [{ type: "text" as const, text: "No budgets found." }],
           }
         }
 
@@ -87,11 +78,11 @@ export function registerListBudgets(
         const text = `Found ${budgets.length} budget(s):\n\n${lines.join("\n")}`
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

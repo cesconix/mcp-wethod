@@ -25,10 +25,7 @@ type Project = {
   pm_id: number | null
 }
 
-export function registerListProjects(
-  server: McpServer,
-  client: WethodClient
-) {
+export function registerListProjects(server: McpServer, client: WethodClient) {
   server.registerTool(
     "list_projects",
     {
@@ -52,9 +49,9 @@ export function registerListProjects(
         probability: z
           .number()
           .optional()
-          .describe("Filter by project probability")
+          .describe("Filter by project probability"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -65,16 +62,14 @@ export function registerListProjects(
             params: {
               limit: params.limit,
               offset: params.offset,
-              probability: params.probability
-            }
-          }
+              probability: params.probability,
+            },
+          },
         )
 
         if (projects.length === 0) {
           return {
-            content: [
-              { type: "text" as const, text: "No projects found." }
-            ]
+            content: [{ type: "text" as const, text: "No projects found." }],
           }
         }
 
@@ -86,11 +81,11 @@ export function registerListProjects(
         const text = `Found ${projects.length} project(s):\n\n${lines.join("\n")}`
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

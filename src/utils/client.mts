@@ -55,7 +55,7 @@ export class WethodClient {
   async request<T>(
     method: string,
     endpoint: string,
-    options?: RequestOptions
+    options?: RequestOptions,
   ): Promise<T> {
     const url = new URL(`${this.baseUrl}${endpoint}`)
 
@@ -73,8 +73,8 @@ export class WethodClient {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiToken}`,
         "Wethod-Company": this.company,
-        "Wethod-Version": API_VERSION
-      }
+        "Wethod-Version": API_VERSION,
+      },
     }
 
     if (options?.body) {

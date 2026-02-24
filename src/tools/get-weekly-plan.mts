@@ -11,7 +11,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import {
   READONLY_ANNOTATIONS,
-  WORK_HOURS_PER_DAY
+  WORK_HOURS_PER_DAY,
 } from "../utils/constants.mjs"
 import { formatToolError } from "../utils/format.mjs"
 
@@ -50,15 +50,12 @@ function formatISODate(d: Date): string {
  * Adds N days to a YYYY-MM-DD string and returns YYYY-MM-DD.
  */
 function addDays(dateStr: string, n: number): string {
-  const d = new Date(dateStr + "T00:00:00")
+  const d = new Date(`${dateStr}T00:00:00`)
   d.setDate(d.getDate() + n)
   return formatISODate(d)
 }
 
-export function registerGetWeeklyPlan(
-  server: McpServer,
-  client: WethodClient
-) {
+export function registerGetWeeklyPlan(server: McpServer, client: WethodClient) {
   server.registerTool(
     "get_weekly_plan",
     {
@@ -72,23 +69,18 @@ export function registerGetWeeklyPlan(
         date_from: z
           .string()
           .optional()
-          .describe(
-            "Start date YYYY-MM-DD (defaults to current week Monday)"
-          ),
+          .describe("Start date YYYY-MM-DD (defaults to current week Monday)"),
         date_to: z
           .string()
           .optional()
-          .describe(
-            "End date YYYY-MM-DD (defaults to current week Friday)"
-          )
+          .describe("End date YYYY-MM-DD (defaults to current week Friday)"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
         const dateFrom = params.date_from ?? getCurrentWeekMonday()
-        const dateTo =
-          params.date_to ?? addDays(dateFrom, 4) // Friday
+        const dateTo = params.date_to ?? addDays(dateFrom, 4) // Friday
 
         // Fetch allocations for all persons in parallel
         const results = await Promise.all(
@@ -101,17 +93,15 @@ export function registerGetWeeklyPlan(
                   person_id: personId,
                   date: `gte:${dateFrom}`,
                   limit: 100,
-                  offset: 0
-                }
-              }
+                  offset: 0,
+                },
+              },
             )
 
             // Filter to date range and exclude soft-deleted
             const filtered = allocations.filter(
               (a) =>
-                a.date >= dateFrom &&
-                a.date <= dateTo &&
-                a.deleted_at === null
+                a.date >= dateFrom && a.date <= dateTo && a.deleted_at === null,
             )
 
             // Group by project and sum hours
@@ -119,12 +109,12 @@ export function registerGetWeeklyPlan(
             for (const a of filtered) {
               projectHours.set(
                 a.project_id,
-                (projectHours.get(a.project_id) ?? 0) + a.hours
+                (projectHours.get(a.project_id) ?? 0) + a.hours,
               )
             }
 
             return { personId, projectHours }
-          })
+          }),
         )
 
         // Format output
@@ -138,9 +128,7 @@ export function registerGetWeeklyPlan(
           } else {
             for (const [projectId, hours] of projectHours) {
               const days = Math.round((hours / WORK_HOURS_PER_DAY) * 10) / 10
-              lines.push(
-                `  Project ${projectId}: ${hours}h (${days} days)`
-              )
+              lines.push(`  Project ${projectId}: ${hours}h (${days} days)`)
             }
           }
 
@@ -150,11 +138,11 @@ export function registerGetWeeklyPlan(
         const text = `WEEKLY PLAN (${dateFrom} to ${dateTo})\n\n${blocks.join("\n\n")}`
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

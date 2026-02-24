@@ -22,7 +22,7 @@ type ProductionPlan = {
 
 export function registerListProductionPlans(
   server: McpServer,
-  client: WethodClient
+  client: WethodClient,
 ) {
   server.registerTool(
     "list_production_plans",
@@ -52,11 +52,9 @@ export function registerListProductionPlans(
         date: z
           .string()
           .optional()
-          .describe(
-            "Date filter with operator (e.g. 'gt:2026-01-01')"
-          )
+          .describe("Date filter with operator (e.g. 'gt:2026-01-01')"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -68,9 +66,9 @@ export function registerListProductionPlans(
               limit: params.limit,
               offset: params.offset,
               project_id: params.project_id,
-              date: params.date
-            }
-          }
+              date: params.date,
+            },
+          },
         )
 
         const active = plans.filter((p) => p.deleted_at === null)
@@ -78,8 +76,8 @@ export function registerListProductionPlans(
         if (active.length === 0) {
           return {
             content: [
-              { type: "text" as const, text: "No production plans found." }
-            ]
+              { type: "text" as const, text: "No production plans found." },
+            ],
           }
         }
 
@@ -90,11 +88,11 @@ export function registerListProductionPlans(
         const text = `Found ${active.length} production plan(s):\n\n${lines.join("\n")}`
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

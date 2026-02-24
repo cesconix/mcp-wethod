@@ -24,10 +24,7 @@ type Project = {
   pm_id: number | null
 }
 
-export function registerGetProject(
-  server: McpServer,
-  client: WethodClient
-) {
+export function registerGetProject(server: McpServer, client: WethodClient) {
   server.registerTool(
     "get_project",
     {
@@ -35,18 +32,15 @@ export function registerGetProject(
       description:
         "Get full details of a single Wethod project by its ID. Returns all project fields in readable text format.",
       inputSchema: {
-        id: z
-          .number()
-          .int()
-          .describe("Project ID")
+        id: z.number().int().describe("Project ID"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
         const project = await client.request<Project>(
           "GET",
-          `/api/projects/${params.id}`
+          `/api/projects/${params.id}`,
         )
 
         const lines = [
@@ -59,17 +53,17 @@ export function registerGetProject(
           `Duration: ${project.duration} months`,
           `Archived: ${project.is_archived ? "Yes" : "No"}`,
           `Client ID: ${project.client_id}`,
-          `PM ID: ${project.pm_id ?? "—"}`
+          `PM ID: ${project.pm_id ?? "—"}`,
         ]
 
         const text = lines.join("\n")
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

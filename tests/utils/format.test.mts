@@ -1,12 +1,16 @@
-import { describe, it, expect } from "vitest"
-import { formatToolError, formatHours, formatDate } from "../../src/utils/format.mjs"
+import { describe, expect, it } from "vitest"
+import {
+  formatDate,
+  formatHours,
+  formatToolError,
+} from "../../src/utils/format.mjs"
 
 describe("formatToolError", () => {
   it("formats an Error instance", () => {
     const result = formatToolError(new Error("something broke"))
     expect(result).toEqual({
       isError: true,
-      content: [{ type: "text", text: "Error: something broke" }]
+      content: [{ type: "text", text: "Error: something broke" }],
     })
   })
 
@@ -14,7 +18,7 @@ describe("formatToolError", () => {
     const result = formatToolError("unexpected failure")
     expect(result).toEqual({
       isError: true,
-      content: [{ type: "text", text: "Error: unexpected failure" }]
+      content: [{ type: "text", text: "Error: unexpected failure" }],
     })
   })
 
@@ -22,7 +26,7 @@ describe("formatToolError", () => {
     const result = formatToolError(42)
     expect(result).toEqual({
       isError: true,
-      content: [{ type: "text", text: "Error: 42" }]
+      content: [{ type: "text", text: "Error: 42" }],
     })
   })
 
@@ -30,7 +34,7 @@ describe("formatToolError", () => {
     const result = formatToolError(null)
     expect(result).toEqual({
       isError: true,
-      content: [{ type: "text", text: "Error: null" }]
+      content: [{ type: "text", text: "Error: null" }],
     })
   })
 
@@ -38,7 +42,7 @@ describe("formatToolError", () => {
     const result = formatToolError(undefined)
     expect(result).toEqual({
       isError: true,
-      content: [{ type: "text", text: "Error: undefined" }]
+      content: [{ type: "text", text: "Error: undefined" }],
     })
   })
 })

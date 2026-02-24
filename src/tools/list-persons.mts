@@ -21,10 +21,7 @@ type Person = {
   is_archived: boolean
 }
 
-export function registerListPersons(
-  server: McpServer,
-  client: WethodClient
-) {
+export function registerListPersons(server: McpServer, client: WethodClient) {
   server.registerTool(
     "list_persons",
     {
@@ -36,7 +33,7 @@ export function registerListPersons(
           .string()
           .optional()
           .describe(
-            "Search query to filter by name, surname, or email (case-insensitive, client-side)"
+            "Search query to filter by name, surname, or email (case-insensitive, client-side)",
           ),
         limit: z
           .number()
@@ -50,22 +47,18 @@ export function registerListPersons(
           .int()
           .min(0)
           .default(0)
-          .describe("Number of results to skip for pagination")
+          .describe("Number of results to skip for pagination"),
       },
-      annotations: READONLY_ANNOTATIONS
+      annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
-        const persons = await client.request<Person[]>(
-          "GET",
-          "/api/persons",
-          {
-            params: {
-              limit: params.limit,
-              offset: params.offset
-            }
-          }
-        )
+        const persons = await client.request<Person[]>("GET", "/api/persons", {
+          params: {
+            limit: params.limit,
+            offset: params.offset,
+          },
+        })
 
         let filtered = persons.filter((p) => !p.is_archived)
 
@@ -75,15 +68,13 @@ export function registerListPersons(
             (p) =>
               p.name.toLowerCase().includes(query) ||
               p.surname.toLowerCase().includes(query) ||
-              p.email.toLowerCase().includes(query)
+              p.email.toLowerCase().includes(query),
           )
         }
 
         if (filtered.length === 0) {
           return {
-            content: [
-              { type: "text" as const, text: "No persons found." }
-            ]
+            content: [{ type: "text" as const, text: "No persons found." }],
           }
         }
 
@@ -95,11 +86,11 @@ export function registerListPersons(
         const text = `Found ${filtered.length} person(s):\n\n${lines.join("\n")}`
 
         return {
-          content: [{ type: "text" as const, text }]
+          content: [{ type: "text" as const, text }],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

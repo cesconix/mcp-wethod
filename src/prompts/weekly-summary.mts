@@ -13,7 +13,7 @@ export function registerWeeklySummaryPrompt(server: McpServer) {
     {
       title: "Weekly Summary",
       description:
-        "Generate a weekly summary of team activity and project status from Wethod data"
+        "Generate a weekly summary of team activity and project status from Wethod data",
     },
     () => {
       const text = `Generate a weekly summary from Wethod data. Follow these steps:
@@ -25,8 +25,8 @@ export function registerWeeklySummaryPrompt(server: McpServer) {
 5. Compile a summary including: team allocation overview, utilization rates, timesheet completion status, and any concerns (overloaded team members, missing timesheets).`
 
       return {
-        messages: [{ role: "user" as const, content: { type: "text", text } }]
+        messages: [{ role: "user" as const, content: { type: "text", text } }],
       }
-    }
+    },
   )
 }

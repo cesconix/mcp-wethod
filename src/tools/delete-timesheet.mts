@@ -13,7 +13,7 @@ import { formatToolError } from "../utils/format.mjs"
 
 export function registerDeleteTimesheet(
   server: McpServer,
-  client: WethodClient
+  client: WethodClient,
 ) {
   server.registerTool(
     "delete_timesheet",
@@ -26,10 +26,10 @@ export function registerDeleteTimesheet(
         confirm: z
           .boolean()
           .describe(
-            "Must be true to execute. Show a recap and get user confirmation first."
-          )
+            "Must be true to execute. Show a recap and get user confirmation first.",
+          ),
       },
-      annotations: DELETE_ANNOTATIONS
+      annotations: DELETE_ANNOTATIONS,
     },
     async (params) => {
       try {
@@ -39,9 +39,9 @@ export function registerDeleteTimesheet(
             content: [
               {
                 type: "text" as const,
-                text: "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true."
-              }
-            ]
+                text: "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true.",
+              },
+            ],
           }
         }
 
@@ -51,13 +51,13 @@ export function registerDeleteTimesheet(
           content: [
             {
               type: "text" as const,
-              text: `Timesheet ${params.id} deleted successfully.`
-            }
-          ]
+              text: `Timesheet ${params.id} deleted successfully.`,
+            },
+          ],
         }
       } catch (error) {
         return formatToolError(error)
       }
-    }
+    },
   )
 }

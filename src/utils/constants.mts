@@ -10,7 +10,7 @@ export const READONLY_ANNOTATIONS = {
   readOnlyHint: true,
   destructiveHint: false,
   idempotentHint: true,
-  openWorldHint: false
+  openWorldHint: false,
 } as const
 
 /**
@@ -21,7 +21,7 @@ export const WRITE_ANNOTATIONS = {
   readOnlyHint: false,
   destructiveHint: false,
   idempotentHint: false,
-  openWorldHint: false
+  openWorldHint: false,
 } as const
 
 /**
@@ -32,7 +32,7 @@ export const DELETE_ANNOTATIONS = {
   readOnlyHint: false,
   destructiveHint: true,
   idempotentHint: false,
-  openWorldHint: false
+  openWorldHint: false,
 } as const
 
 /** Wethod API version sent via the Wethod-Version header. */
