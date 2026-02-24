@@ -10,10 +10,7 @@ import { z } from "zod"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
 
-export function registerLookupProjectType(
-  server: McpServer,
-  data: DataLoader,
-) {
+export function registerLookupProjectType(server: McpServer, data: DataLoader) {
   server.registerTool(
     "lookup_project_type",
     {

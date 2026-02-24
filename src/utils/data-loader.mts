@@ -84,9 +84,7 @@ export class DataLoader {
 
   getProjectTypes(): Map<number, ProjectTypeEntry> {
     return toMap(
-      readJson<ProjectTypeEntry[]>(
-        join(this.dataDir, "project-types.json"),
-      ),
+      readJson<ProjectTypeEntry[]>(join(this.dataDir, "project-types.json")),
     )
   }
 

@@ -17,13 +17,13 @@ import { join } from "node:path"
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
+import { WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import type {
   ClientEntry,
   PersonEntry,
   ProjectEntry,
   ProjectTypeEntry,
 } from "../utils/data-loader.mjs"
-import { WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import { formatToolError } from "../utils/format.mjs"
 
 // --- API response types ---
