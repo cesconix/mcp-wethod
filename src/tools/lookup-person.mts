@@ -1,8 +1,8 @@
 /**
  * Tool: lookup_person
  *
- * Looks up a person by ID or searches by name from local YAML data.
- * No API call — reads from ~/.mcp-wethod/{company}/persons.yaml.
+ * Looks up a person by ID or searches by name from local JSON data.
+ * No API call — reads from ~/.mcp-wethod/{company}/persons.json.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"

@@ -63,7 +63,7 @@ export function registerAllTools(
   client: WethodClient,
   data: DataLoader,
 ) {
-  // Local data lookups (from synced YAML files — required before using other tools)
+  // Local data lookups (from synced JSON files — required before using other tools)
   registerLookupPerson(server, data)
   registerLookupProject(server, data)
   registerLookupClient(server, data)
