@@ -56,6 +56,7 @@ type TimetrackingProject = {
   id: number
   name: string
   job_order: string | null
+  type_id?: number
 }
 
 type TimetrackingProjectType = {
@@ -189,6 +190,7 @@ export function buildProjects(
         client: clientId !== null ? (clientMap.get(clientId) ?? null) : null,
         client_id: clientId,
         pm_id: api?.pm_id ?? null,
+        project_type_id: p.type_id ?? null,
       }
     })
     .sort((a, b) => a.id - b.id)

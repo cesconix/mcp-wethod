@@ -22,12 +22,14 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { McpServer as McpServerImpl } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
+import { registerProjectDeliveryForecastPrompt } from "./prompts/project-delivery-forecast.mjs"
 import { registerTimesheetReminderPrompt } from "./prompts/timesheet-reminder.mjs"
 import { registerWeeklySummaryPrompt } from "./prompts/weekly-summary.mjs"
 import { registerCheckTimesheetStatus } from "./tools/check-timesheet-status.mjs"
 import { registerCreateTimesheet } from "./tools/create-timesheet.mjs"
 import { registerDeleteTimesheet } from "./tools/delete-timesheet.mjs"
 import { registerGetAvailability } from "./tools/get-availability.mjs"
+import { registerGetBillability } from "./tools/get-billability.mjs"
 import { registerGetProject } from "./tools/get-project.mjs"
 import { registerGetTeamTimesheet } from "./tools/get-team-timesheet.mjs"
 import { registerGetWeeklyPlan } from "./tools/get-weekly-plan.mjs"
@@ -80,6 +82,7 @@ export function registerAllTools(
   registerCheckTimesheetStatus(server, client)
   registerGetWeeklyPlan(server, client)
   registerGetAvailability(server, client)
+  registerGetBillability(server, client, data)
 
   // Team
   registerGetTeamTimesheet(server, client)
@@ -112,6 +115,7 @@ export function registerAllTools(
 export function registerAllPrompts(server: McpServer) {
   registerTimesheetReminderPrompt(server)
   registerWeeklySummaryPrompt(server)
+  registerProjectDeliveryForecastPrompt(server)
 }
 
 /**

@@ -27,6 +27,7 @@ export type ProjectEntry = {
   client: string | null
   client_id: number | null
   pm_id: number | null
+  project_type_id: number | null
 }
 
 export type ClientEntry = {
@@ -98,5 +99,16 @@ export class DataLoader {
   clientName(id: number): string {
     const c = this.getClients().get(id)
     return c ? c.name : `Unknown (${id})`
+  }
+
+  /**
+   * Returns whether a project is chargeable (billable) based on its project
+   * type. Returns null if the project or its type is not found in local data.
+   */
+  isProjectChargeable(projectId: number): boolean | null {
+    const p = this.getProjects().get(projectId)
+    if (!p || p.project_type_id === null) return null
+    const t = this.getProjectTypes().get(p.project_type_id)
+    return t?.chargeable ?? null
   }
 }

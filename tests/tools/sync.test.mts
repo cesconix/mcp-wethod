@@ -28,7 +28,15 @@ describe("sync tool", () => {
     ])
 
     const projectsMap = new Map([
-      [25965, { id: 25965, name: "Website Redesign Q1", job_order: "511502" }],
+      [
+        25965,
+        {
+          id: 25965,
+          name: "Website Redesign Q1",
+          job_order: "511502",
+          type_id: 1,
+        },
+      ],
       [30001, { id: 30001, name: "Mobile App", job_order: null }],
     ])
 
@@ -93,12 +101,14 @@ describe("sync tool", () => {
       expect(proj1?.client).toBe("Acme Corp")
       expect(proj1?.client_id).toBe(58)
       expect(proj1?.pm_id).toBe(42)
+      expect(proj1?.project_type_id).toBe(1)
 
       const proj2 = parsed.get(30001)
       expect(proj2?.name).toBe("Mobile App")
       expect(proj2?.job_order).toBeNull()
       expect(proj2?.client).toBe("Beta Industries")
       expect(proj2?.pm_id).toBeNull()
+      expect(proj2?.project_type_id).toBeNull()
     })
 
     it("clients round-trip", () => {
@@ -137,6 +147,17 @@ describe("sync tool", () => {
       const t2 = parsed.get(2)
       expect(t2?.name).toBe("General")
       expect(t2?.chargeable).toBe(false)
+    })
+
+    it("isProjectChargeable resolves via project_type_id", () => {
+      // projects.json and project-types.json already written by previous tests
+      const loader = new DataLoader(tempDir)
+      // project 25965 has type_id: 1 (Billable → chargeable: true)
+      expect(loader.isProjectChargeable(25965)).toBe(true)
+      // project 30001 has no type_id → null
+      expect(loader.isProjectChargeable(30001)).toBeNull()
+      // unknown project
+      expect(loader.isProjectChargeable(99999)).toBeNull()
     })
   })
 

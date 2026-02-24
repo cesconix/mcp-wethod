@@ -19,6 +19,7 @@ function formatProject(
     client: string | null
     client_id: number | null
     pm_id: number | null
+    project_type_id: number | null
   },
   data: DataLoader,
 ): string {
@@ -26,6 +27,7 @@ function formatProject(
   if (p.client) parts.push(`client: ${p.client}`)
   if (p.job_order) parts.push(`job_order: ${p.job_order}`)
   if (p.pm_id) parts.push(`pm: ${data.personName(p.pm_id)}`)
+  if (p.project_type_id !== null) parts.push(`type_id: ${p.project_type_id}`)
   return parts.join(" | ")
 }
 
