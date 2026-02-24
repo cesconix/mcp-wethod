@@ -1,5 +1,10 @@
 # mcp-wethod
 
+[![npm version](https://img.shields.io/npm/v/mcp-wethod)](https://www.npmjs.com/package/mcp-wethod)
+[![CI](https://github.com/cesconix/mcp-wethod/actions/workflows/ci.yml/badge.svg)](https://github.com/cesconix/mcp-wethod/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D22-brightgreen)](https://nodejs.org/)
+
 MCP server for [Wethod](https://www.wethod.com/) project management — timesheet, planning, budgets, and team tools.
 
 ## Installation
@@ -120,17 +125,12 @@ Each instance gets its own data directory (`~/.mcp-wethod/acme/`, `~/.mcp-wethod
 ## Development
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Build
-pnpm build
-
-# Run tests
-pnpm test
-
-# Type-check without emitting
-pnpm lint
+pnpm install          # Install dependencies
+pnpm run lint         # Lint and format check (Biome)
+pnpm run format       # Auto-fix lint and formatting
+pnpm run typecheck    # Type-check (tsc --noEmit)
+pnpm run test         # Run tests (Vitest)
+pnpm run build        # Build (tsc)
 ```
 
 Requires Node.js >= 22.
