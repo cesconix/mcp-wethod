@@ -2,7 +2,7 @@
  * Tool: lookup_project
  *
  * Looks up a project by ID or searches by name from local YAML data.
- * No API call — reads from data/wethod-projects.yaml (synced by wethod-sync.sh).
+ * No API call — reads from ~/.mcp-wethod/{company}/projects.yaml.
  * Includes client name and PM name resolved from local data.
  */
 
@@ -52,7 +52,7 @@ export function registerLookupProject(server: McpServer, data: DataLoader) {
           content: [
             {
               type: "text" as const,
-              text: "SYNC REQUIRED: Project data not found. Ask the user to run /jkl:wethod-sync before using Wethod tools."
+              text: "SYNC REQUIRED: Project data not found. Run the sync tool to populate local data."
             }
           ]
         }

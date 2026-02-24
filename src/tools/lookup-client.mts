@@ -2,7 +2,7 @@
  * Tool: lookup_client
  *
  * Looks up a client by ID or searches by name from local YAML data.
- * No API call — reads from data/wethod-clients.yaml (synced by wethod-sync.sh).
+ * No API call — reads from ~/.mcp-wethod/{company}/clients.yaml.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
@@ -38,7 +38,7 @@ export function registerLookupClient(server: McpServer, data: DataLoader) {
           content: [
             {
               type: "text" as const,
-              text: "SYNC REQUIRED: Client data not found. Ask the user to run /jkl:wethod-sync before using Wethod tools."
+              text: "SYNC REQUIRED: Client data not found. Run the sync tool to populate local data."
             }
           ]
         }

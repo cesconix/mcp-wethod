@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { dirname, join } from "node:path"
-import { fileURLToPath } from "node:url"
+import { join } from "node:path"
+import { homedir } from "node:os"
 import { createMcpServer } from "./dist/index.mjs"
 
 const company = process.env.WETHOD_COMPANY
@@ -12,8 +12,6 @@ if (!company || !apiToken) {
   process.exit(1)
 }
 
-// data/ lives at the monorepo root (two levels up from packages/mcp-wethod/)
-const __dirname = dirname(fileURLToPath(import.meta.url))
-const dataDir = join(__dirname, "..", "..", "data")
+const dataDir = join(homedir(), ".mcp-wethod", company)
 
 createMcpServer({ company, apiToken, dataDir })
