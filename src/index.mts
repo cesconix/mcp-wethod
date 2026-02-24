@@ -43,6 +43,7 @@ import { registerListTimesheets } from "./tools/list-timesheets.mjs"
 import { registerLookupClient } from "./tools/lookup-client.mjs"
 import { registerLookupPerson } from "./tools/lookup-person.mjs"
 import { registerLookupProject } from "./tools/lookup-project.mjs"
+import { registerLookupProjectType } from "./tools/lookup-project-type.mjs"
 import { registerSync } from "./tools/sync.mjs"
 import { registerUpdateTimesheet } from "./tools/update-timesheet.mjs"
 import { WethodClient, type WethodClientOptions } from "./utils/client.mjs"
@@ -67,6 +68,7 @@ export function registerAllTools(
   registerLookupPerson(server, data)
   registerLookupProject(server, data)
   registerLookupClient(server, data)
+  registerLookupProjectType(server, data)
 
   // Timesheet CRUD
   registerListTimesheets(server, client)
