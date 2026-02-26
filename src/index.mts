@@ -47,6 +47,7 @@ import { registerSync } from "./tools/sync.mjs"
 import { registerUpdateTimesheet } from "./tools/update-timesheet.mjs"
 import { WethodClient, type WethodClientOptions } from "./utils/client.mjs"
 import { DataLoader } from "./utils/data-loader.mjs"
+import { VERSION } from "./version.mjs"
 
 export { WethodClient, DataLoader, registerSync }
 export type { WethodClientOptions }
@@ -121,7 +122,7 @@ export function registerAll(
   company: string,
 ) {
   registerAllTools(server, client, data)
-  registerSync(server, client, dataDir, company)
+  registerSync(server, client, dataDir, company, data)
   registerAllPrompts(server)
 }
 
@@ -137,7 +138,7 @@ export async function createMcpServer(
 
   const server = new McpServerImpl({
     name: "wethod",
-    version: "0.1.0",
+    version: VERSION,
   })
 
   registerAll(server, client, data, options.dataDir, options.company)

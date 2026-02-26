@@ -14,4 +14,14 @@ if (!company || !apiToken) {
 
 const dataDir = join(homedir(), ".mcp-wethod", company)
 
-createMcpServer({ company, apiToken, dataDir })
+const server = await createMcpServer({ company, apiToken, dataDir })
+
+process.on("SIGINT", async () => {
+  await server.close()
+  process.exit(0)
+})
+
+process.on("SIGTERM", async () => {
+  await server.close()
+  process.exit(0)
+})

@@ -12,7 +12,7 @@
  * Output: 4 JSON files in ~/.mcp-wethod/{company}/
  */
 
-import { mkdirSync, writeFileSync } from "node:fs"
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
@@ -20,6 +20,7 @@ import type { WethodClient } from "../utils/client.mjs"
 import { WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import type {
   ClientEntry,
+  DataLoader,
   PersonEntry,
   ProjectEntry,
   ProjectTypeEntry,
@@ -220,6 +221,7 @@ export function registerSync(
   client: WethodClient,
   dataDir: string,
   company: string,
+  data: DataLoader,
 ) {
   server.registerTool(
     "sync",
@@ -233,13 +235,36 @@ export function registerSync(
           .describe(
             "SF6SESSID cookie value from browser DevTools (Application → Cookies → api.wethod.com)",
           ),
+        full: z
+          .boolean()
+          .optional()
+          .describe(
+            "Force a full re-sync from Jan 1 of the current year. Defaults to false (incremental from last sync).",
+          ),
       },
       annotations: WRITE_ANNOTATIONS,
     },
     async (params) => {
       try {
-        const mondays = generateMondays()
-        const log: string[] = []
+        const allMondays = generateMondays()
+        const lastSyncFile = join(dataDir, ".last-sync")
+        let startMonday: string | null = null
+
+        if (!params.full) {
+          try {
+            startMonday = readFileSync(lastSyncFile, "utf-8").trim()
+          } catch {
+            // No .last-sync file — fall through to full sync
+          }
+        }
+
+        const mondays = startMonday
+          ? allMondays.filter((m) => m >= startMonday)
+          : allMondays
+
+        const log: string[] = [
+          startMonday ? `Incremental sync from ${startMonday}` : "Full sync",
+        ]
 
         // --- Phase 1: Timetracking report (session cookie) ---
 
@@ -343,6 +368,10 @@ export function registerSync(
           JSON.stringify(types, null, 2),
           "utf-8",
         )
+
+        data.invalidate()
+
+        writeFileSync(lastSyncFile, mondays[mondays.length - 1], "utf-8")
 
         log.push(
           `Saved to ${dataDir}/: ${persons.length} persons, ${projects.length} projects, ${clients.length} clients, ${types.length} types`,

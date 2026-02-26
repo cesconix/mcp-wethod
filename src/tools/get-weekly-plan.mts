@@ -13,6 +13,7 @@ import {
   READONLY_ANNOTATIONS,
   WORK_HOURS_PER_DAY,
 } from "../utils/constants.mjs"
+import { addDays, getCurrentWeekMonday } from "../utils/date.mjs"
 import { formatToolError } from "../utils/format.mjs"
 
 type Allocation = {
@@ -22,37 +23,6 @@ type Allocation = {
   project_id: number
   person_id: number
   deleted_at: string | null
-}
-
-/**
- * Returns the Monday of the current week as a YYYY-MM-DD string.
- */
-function getCurrentWeekMonday(): string {
-  const now = new Date()
-  const day = now.getDay() // 0=Sun, 1=Mon, ..., 6=Sat
-  const diff = day === 0 ? -6 : 1 - day
-  const monday = new Date(now)
-  monday.setDate(now.getDate() + diff)
-  return formatISODate(monday)
-}
-
-/**
- * Formats a Date as YYYY-MM-DD.
- */
-function formatISODate(d: Date): string {
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  return `${year}-${month}-${day}`
-}
-
-/**
- * Adds N days to a YYYY-MM-DD string and returns YYYY-MM-DD.
- */
-function addDays(dateStr: string, n: number): string {
-  const d = new Date(`${dateStr}T00:00:00`)
-  d.setDate(d.getDate() + n)
-  return formatISODate(d)
 }
 
 export function registerGetWeeklyPlan(server: McpServer, client: WethodClient) {

@@ -10,6 +10,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { WORK_HOURS_PER_DAY, WRITE_ANNOTATIONS } from "../utils/constants.mjs"
+import { addDays } from "../utils/date.mjs"
 import { formatToolError } from "../utils/format.mjs"
 
 type Timesheet = {
@@ -30,15 +31,6 @@ const DAY_OFFSETS: Record<string, number> = {
   fri: 4,
   sat: 5,
   sun: 6,
-}
-
-function addDays(dateStr: string, n: number): string {
-  const d = new Date(`${dateStr}T00:00:00`)
-  d.setDate(d.getDate() + n)
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, "0")
-  const day = String(d.getDate()).padStart(2, "0")
-  return `${year}-${month}-${day}`
 }
 
 export function registerCreateTimesheet(
