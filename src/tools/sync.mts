@@ -214,6 +214,154 @@ export function buildProjectTypes(
     .sort((a, b) => a.id - b.id)
 }
 
+// --- Core sync logic (reusable by setup and sync tools) ---
+
+export type SyncResult = {
+  log: string[]
+  persons: PersonEntry[]
+  projects: ProjectEntry[]
+  clients: ClientEntry[]
+  types: ProjectTypeEntry[]
+}
+
+/**
+ * Performs the full sync operation and writes JSON files to disk.
+ * Shared by both the `sync` tool and the `setup` tool.
+ */
+export async function performSync(options: {
+  sessionId: string
+  company: string
+  client: WethodClient
+  dataDir: string
+  full?: boolean
+}): Promise<SyncResult> {
+  const { sessionId, company, client, dataDir, full } = options
+  const allMondays = generateMondays()
+  const lastSyncFile = join(dataDir, ".last-sync")
+  let startMonday: string | null = null
+
+  if (!full) {
+    try {
+      startMonday = readFileSync(lastSyncFile, "utf-8").trim()
+    } catch {
+      // No .last-sync file — fall through to full sync
+    }
+  }
+
+  const mondays = startMonday
+    ? allMondays.filter((m) => m >= startMonday)
+    : allMondays
+
+  const log: string[] = [
+    startMonday ? `Incremental sync from ${startMonday}` : "Full sync",
+  ]
+
+  // --- Phase 1: Timetracking report (session cookie) ---
+
+  const employeesMap = new Map<number, TimetrackingEmployee>()
+  const projectsMap = new Map<number, TimetrackingProject>()
+  let projectTypes: TimetrackingProjectType[] = []
+  let failed = 0
+
+  for (let i = 0; i < mondays.length; i++) {
+    const monday = mondays[i]
+    const response = await fetchWeek(monday, sessionId, company)
+
+    if (!response) {
+      failed++
+      continue
+    }
+
+    for (const emp of response.data.employees) {
+      const { timetrackings: _, ...person } = emp
+      employeesMap.set(person.id, person)
+    }
+
+    for (const proj of response.data.project) {
+      projectsMap.set(proj.id, proj)
+    }
+
+    if (projectTypes.length === 0 && response.data.project_types) {
+      projectTypes = response.data.project_types
+    }
+
+    if (i < mondays.length - 1) {
+      await sleep(DELAY_MS)
+    }
+  }
+
+  if (failed === mondays.length) {
+    throw new Error(
+      "All requests failed. Check your SF6SESSID cookie — it may have expired.",
+    )
+  }
+
+  log.push(
+    `Phase 1: ${mondays.length - failed}/${mondays.length} weeks OK, ${employeesMap.size} persons, ${projectsMap.size} projects, ${projectTypes.length} types`,
+  )
+
+  // --- Phase 2: Enrichment from public API ---
+
+  const [allClients, allApiProjects] = await Promise.all([
+    fetchAllPages<ApiClient>(client, "/api/clients"),
+    fetchAllPages<ApiProject>(client, "/api/projects"),
+  ])
+
+  const clientMap = new Map<number, string>()
+  for (const c of allClients) {
+    clientMap.set(c.id, c.corporate_name)
+  }
+
+  const apiProjectMap = new Map<
+    number,
+    { client_id: number; pm_id: number | null }
+  >()
+  for (const p of allApiProjects) {
+    apiProjectMap.set(p.id, { client_id: p.client_id, pm_id: p.pm_id })
+  }
+
+  log.push(
+    `Phase 2: ${allClients.length} clients, ${allApiProjects.length} projects from API`,
+  )
+
+  // --- Build data and write JSON files ---
+
+  const persons = buildPersons(employeesMap)
+  const projects = buildProjects(projectsMap, apiProjectMap, clientMap)
+  const clients = buildClients(allClients)
+  const types = buildProjectTypes(projectTypes)
+
+  mkdirSync(dataDir, { recursive: true })
+  writeFileSync(
+    join(dataDir, "persons.json"),
+    JSON.stringify(persons, null, 2),
+    "utf-8",
+  )
+  writeFileSync(
+    join(dataDir, "projects.json"),
+    JSON.stringify(projects, null, 2),
+    "utf-8",
+  )
+  writeFileSync(
+    join(dataDir, "clients.json"),
+    JSON.stringify(clients, null, 2),
+    "utf-8",
+  )
+  writeFileSync(
+    join(dataDir, "project-types.json"),
+    JSON.stringify(types, null, 2),
+    "utf-8",
+  )
+
+  writeFileSync(lastSyncFile, mondays[mondays.length - 1], "utf-8")
+
+  log.push(
+    `Saved to ${dataDir}/: ${persons.length} persons, ${projects.length} projects, ${clients.length} clients, ${types.length} types`,
+  )
+
+  return { log, persons, projects, clients, types }
+}
+
 // --- Tool registration ---
 
 export function registerSync(
@@ -246,139 +394,18 @@ export function registerSync(
     },
     async (params) => {
       try {
-        const allMondays = generateMondays()
-        const lastSyncFile = join(dataDir, ".last-sync")
-        let startMonday: string | null = null
-
-        if (!params.full) {
-          try {
-            startMonday = readFileSync(lastSyncFile, "utf-8").trim()
-          } catch {
-            // No .last-sync file — fall through to full sync
-          }
-        }
-
-        const mondays = startMonday
-          ? allMondays.filter((m) => m >= startMonday)
-          : allMondays
-
-        const log: string[] = [
-          startMonday ? `Incremental sync from ${startMonday}` : "Full sync",
-        ]
-
-        // --- Phase 1: Timetracking report (session cookie) ---
-
-        const employeesMap = new Map<number, TimetrackingEmployee>()
-        const projectsMap = new Map<number, TimetrackingProject>()
-        let projectTypes: TimetrackingProjectType[] = []
-        let failed = 0
-
-        for (let i = 0; i < mondays.length; i++) {
-          const monday = mondays[i]
-          const response = await fetchWeek(monday, params.session_id, company)
-
-          if (!response) {
-            failed++
-            continue
-          }
-
-          // Accumulate employees (deduplicate by id, last wins)
-          for (const emp of response.data.employees) {
-            const { timetrackings: _, ...person } = emp
-            employeesMap.set(person.id, person)
-          }
-
-          // Accumulate projects (deduplicate by id, last wins)
-          for (const proj of response.data.project) {
-            projectsMap.set(proj.id, proj)
-          }
-
-          // Project types from first successful response
-          if (projectTypes.length === 0 && response.data.project_types) {
-            projectTypes = response.data.project_types
-          }
-
-          // Rate limit between requests
-          if (i < mondays.length - 1) {
-            await sleep(DELAY_MS)
-          }
-        }
-
-        if (failed === mondays.length) {
-          return formatToolError(
-            new Error(
-              "All requests failed. Check your SF6SESSID cookie — it may have expired.",
-            ),
-          )
-        }
-
-        log.push(
-          `Phase 1: ${mondays.length - failed}/${mondays.length} weeks OK, ${employeesMap.size} persons, ${projectsMap.size} projects, ${projectTypes.length} types`,
-        )
-
-        // --- Phase 2: Enrichment from public API ---
-
-        const [allClients, allApiProjects] = await Promise.all([
-          fetchAllPages<ApiClient>(client, "/api/clients"),
-          fetchAllPages<ApiProject>(client, "/api/projects"),
-        ])
-
-        const clientMap = new Map<number, string>()
-        for (const c of allClients) {
-          clientMap.set(c.id, c.corporate_name)
-        }
-
-        const apiProjectMap = new Map<
-          number,
-          { client_id: number; pm_id: number | null }
-        >()
-        for (const p of allApiProjects) {
-          apiProjectMap.set(p.id, { client_id: p.client_id, pm_id: p.pm_id })
-        }
-
-        log.push(
-          `Phase 2: ${allClients.length} clients, ${allApiProjects.length} projects from API`,
-        )
-
-        // --- Build data and write JSON files ---
-
-        const persons = buildPersons(employeesMap)
-        const projects = buildProjects(projectsMap, apiProjectMap, clientMap)
-        const clients = buildClients(allClients)
-        const types = buildProjectTypes(projectTypes)
-
-        mkdirSync(dataDir, { recursive: true })
-        writeFileSync(
-          join(dataDir, "persons.json"),
-          JSON.stringify(persons, null, 2),
-          "utf-8",
-        )
-        writeFileSync(
-          join(dataDir, "projects.json"),
-          JSON.stringify(projects, null, 2),
-          "utf-8",
-        )
-        writeFileSync(
-          join(dataDir, "clients.json"),
-          JSON.stringify(clients, null, 2),
-          "utf-8",
-        )
-        writeFileSync(
-          join(dataDir, "project-types.json"),
-          JSON.stringify(types, null, 2),
-          "utf-8",
-        )
+        const result = await performSync({
+          sessionId: params.session_id,
+          company,
+          client,
+          dataDir,
+          full: params.full,
+        })
 
         data.invalidate()
 
-        writeFileSync(lastSyncFile, mondays[mondays.length - 1], "utf-8")
-
-        log.push(
-          `Saved to ${dataDir}/: ${persons.length} persons, ${projects.length} projects, ${clients.length} clients, ${types.length} types`,
-        )
-
         return {
-          content: [{ type: "text" as const, text: log.join("\n") }],
+          content: [{ type: "text" as const, text: result.log.join("\n") }],
         }
       } catch (error) {
         return formatToolError(error)

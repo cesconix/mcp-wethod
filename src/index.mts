@@ -5,6 +5,16 @@
  * tools and prompts, allowing AI assistants to interact with the Wethod
  * API through a standardized protocol.
  *
+ * Two server modes:
+ *
+ * - **Setup mode**: No config found → only the `setup` and `lookup_person`
+ *   tools are registered. The LLM is instructed to guide the user through
+ *   onboarding (credentials + identity).
+ *
+ * - **Normal mode**: Config found → all tools and prompts are registered.
+ *   Server instructions include the current user's identity so the LLM
+ *   always knows who it is acting on behalf of.
+ *
  * Two usage modes:
  *
  * 1. **Standalone CLI** (`bin.mjs`):
@@ -43,9 +53,12 @@ import { registerLookupClient } from "./tools/lookup-client.mjs"
 import { registerLookupPerson } from "./tools/lookup-person.mjs"
 import { registerLookupProject } from "./tools/lookup-project.mjs"
 import { registerLookupProjectType } from "./tools/lookup-project-type.mjs"
+import { registerReset } from "./tools/reset.mjs"
+import { registerSetup } from "./tools/setup.mjs"
 import { registerSync } from "./tools/sync.mjs"
 import { registerUpdateTimesheet } from "./tools/update-timesheet.mjs"
 import { WethodClient, type WethodClientOptions } from "./utils/client.mjs"
+import { CONFIG_DIR, readConfig } from "./utils/config.mjs"
 import { DataLoader } from "./utils/data-loader.mjs"
 import { VERSION } from "./version.mjs"
 
@@ -126,27 +139,85 @@ export function registerAll(
   registerAllPrompts(server)
 }
 
+// --- Server instructions ---
+
+const SETUP_INSTRUCTIONS = [
+  "mcp-wethod is not configured yet.",
+  "Guide the user through setup by calling the `setup` tool:",
+  "",
+  "1. Ask for their Wethod company slug (the part before .wethod.com),",
+  "   API token, and SF6SESSID cookie.",
+  "   - API token: Wethod → Settings → API Token",
+  "   - SF6SESSID: Browser DevTools → Application → Cookies → api.wethod.com → SF6SESSID",
+  '2. Call `setup` with step="credentials" providing company, api_token, session_id.',
+  "3. After sync completes, ask the user their name, then use `lookup_person`",
+  "   to find their person ID.",
+  '4. Call `setup` with step="identify" providing the person_id.',
+  "5. Tell the user to reconnect the MCP server to apply the configuration.",
+  "",
+  "Do NOT attempt any other operations until setup is complete.",
+].join("\n")
+
+function normalInstructions(
+  personName: string,
+  personId: number,
+  company: string,
+): string {
+  return [
+    `You are acting on behalf of ${personName} (person ID: ${personId}) on the "${company}" Wethod instance.`,
+    "Always use this person ID for operations that require it (timesheets, availability, etc.).",
+    "Do NOT ask the user for their person ID — you already know it.",
+  ].join("\n")
+}
+
 /**
  * Creates a standalone MCP server with stdio transport.
  * Used by the CLI entry point (`bin.mjs`) when running as a subprocess.
+ *
+ * Reads config from `~/.mcp-wethod/config.json` (or env vars).
+ * If no config is found, starts in setup mode.
  */
-export async function createMcpServer(
-  options: WethodClientOptions & { dataDir: string },
-) {
-  const client = new WethodClient(options)
-  const data = new DataLoader(options.dataDir)
+export async function createMcpServer() {
+  const config = readConfig()
 
-  const server = new McpServerImpl({
-    name: "wethod",
-    version: VERSION,
-  })
+  if (config) {
+    // --- Normal mode: fully configured ---
+    const client = new WethodClient(config)
+    const data = new DataLoader(CONFIG_DIR)
+    const personName = data.personName(config.personId)
 
-  registerAll(server, client, data, options.dataDir, options.company)
+    const server = new McpServerImpl(
+      { name: "wethod", version: VERSION },
+      {
+        instructions: normalInstructions(
+          personName,
+          config.personId,
+          config.company,
+        ),
+      },
+    )
 
-  // Stdio transport: the AI client communicates via the process's
-  // stdin/stdout streams (standard MCP subprocess model).
+    registerAll(server, client, data, CONFIG_DIR, config.company)
+    registerReset(server)
+
+    const transport = new StdioServerTransport()
+    await server.connect(transport)
+    return server
+  }
+
+  // --- Setup mode: no config found ---
+  const data = new DataLoader(CONFIG_DIR)
+
+  const server = new McpServerImpl(
+    { name: "wethod", version: VERSION },
+    { instructions: SETUP_INSTRUCTIONS },
+  )
+
+  registerSetup(server)
+  registerLookupPerson(server, data)
+  registerReset(server)
+
   const transport = new StdioServerTransport()
   await server.connect(transport)
-
   return server
 }
