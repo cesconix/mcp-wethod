@@ -27,21 +27,21 @@ export function formatToolError(error: unknown) {
 /**
  * Formats hours worked versus expected hours.
  *
- * Returns a compact string such as `6/8h (2h mancanti)` when hours are
+ * Returns a compact string such as `6/8h (2h missing)` when hours are
  * below the target, or `8/8h OK` when the target is met.
  */
 export function formatHours(hours: number, expected: number): string {
   if (hours >= expected) return `${hours}/${expected}h OK`
-  return `${hours}/${expected}h (${expected - hours}h mancanti)`
+  return `${hours}/${expected}h (${expected - hours}h missing)`
 }
 
 /**
- * Formats an ISO date string into a compact Italian weekday prefix.
+ * Formats an ISO date string into a compact English weekday prefix.
  *
- * Example: `"2025-01-06"` -> `"lun 2025-01-06"`
+ * Example: `"2025-01-06"` -> `"Mon 2025-01-06"`
  */
 export function formatDate(date: string): string {
   const d = new Date(date)
-  const days = ["dom", "lun", "mar", "mer", "gio", "ven", "sab"]
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
   return `${days[d.getDay()]} ${date}`
 }

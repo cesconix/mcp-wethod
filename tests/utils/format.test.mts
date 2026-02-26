@@ -57,36 +57,36 @@ describe("formatHours", () => {
   })
 
   it("shows missing hours when below the target", () => {
-    expect(formatHours(6, 8)).toBe("6/8h (2h mancanti)")
+    expect(formatHours(6, 8)).toBe("6/8h (2h missing)")
   })
 
   it("shows all hours missing when zero", () => {
-    expect(formatHours(0, 8)).toBe("0/8h (8h mancanti)")
+    expect(formatHours(0, 8)).toBe("0/8h (8h missing)")
   })
 
   it("handles decimal hours", () => {
-    expect(formatHours(5.5, 8)).toBe("5.5/8h (2.5h mancanti)")
+    expect(formatHours(5.5, 8)).toBe("5.5/8h (2.5h missing)")
   })
 })
 
 describe("formatDate", () => {
-  it("formats a Monday date with Italian weekday", () => {
+  it("formats a Monday date with English weekday", () => {
     // 2025-01-06 is a Monday
-    expect(formatDate("2025-01-06")).toBe("lun 2025-01-06")
+    expect(formatDate("2025-01-06")).toBe("Mon 2025-01-06")
   })
 
   it("formats a Saturday date", () => {
     // 2025-01-04 is a Saturday
-    expect(formatDate("2025-01-04")).toBe("sab 2025-01-04")
+    expect(formatDate("2025-01-04")).toBe("Sat 2025-01-04")
   })
 
   it("formats a Sunday date", () => {
     // 2025-01-05 is a Sunday
-    expect(formatDate("2025-01-05")).toBe("dom 2025-01-05")
+    expect(formatDate("2025-01-05")).toBe("Sun 2025-01-05")
   })
 
   it("formats a Wednesday date", () => {
     // 2025-01-08 is a Wednesday
-    expect(formatDate("2025-01-08")).toBe("mer 2025-01-08")
+    expect(formatDate("2025-01-08")).toBe("Wed 2025-01-08")
   })
 })

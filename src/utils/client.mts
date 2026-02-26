@@ -5,6 +5,7 @@
  * API version) and provides typed JSON parsing with error handling.
  */
 
+import type { ZodType } from "zod"
 import { API_VERSION, DEFAULT_BASE_URL } from "./constants.mjs"
 
 export interface WethodClientOptions {
@@ -16,11 +17,13 @@ export interface WethodClientOptions {
   baseUrl?: string
 }
 
-export interface RequestOptions {
+export interface RequestOptions<T = unknown> {
   /** JSON-serializable request body. */
   body?: unknown
   /** Query string parameters (undefined values are skipped). */
   params?: Record<string, string | number | boolean | undefined>
+  /** Optional Zod schema for runtime validation of the response. */
+  schema?: ZodType<T>
 }
 
 /**
@@ -55,7 +58,7 @@ export class WethodClient {
   async request<T>(
     method: string,
     endpoint: string,
-    options?: RequestOptions,
+    options?: RequestOptions<T>,
   ): Promise<T> {
     const url = new URL(`${this.baseUrl}${endpoint}`)
 
@@ -91,7 +94,13 @@ export class WethodClient {
     const json = await response.json()
 
     if (!response.ok) {
-      throw new Error(JSON.stringify(json))
+      const message =
+        json.message ?? json.error ?? json.detail ?? JSON.stringify(json)
+      throw new Error(`Wethod API ${response.status}: ${message}`)
+    }
+
+    if (options?.schema) {
+      return options.schema.parse(json)
     }
 
     return json as T

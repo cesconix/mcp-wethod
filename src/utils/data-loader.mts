@@ -65,27 +65,59 @@ function toMap<T extends { id: number }>(items: T[] | null): Map<number, T> {
 
 export class DataLoader {
   private dataDir: string
+  private cache = {
+    persons: null as Map<number, PersonEntry> | null,
+    projects: null as Map<number, ProjectEntry> | null,
+    clients: null as Map<number, ClientEntry> | null,
+    projectTypes: null as Map<number, ProjectTypeEntry> | null,
+  }
 
   constructor(dataDir: string) {
     this.dataDir = dataDir
   }
 
+  /** Invalidate all cached data. Call after sync completes. */
+  invalidate(): void {
+    this.cache.persons = null
+    this.cache.projects = null
+    this.cache.clients = null
+    this.cache.projectTypes = null
+  }
+
   getPersons(): Map<number, PersonEntry> {
-    return toMap(readJson<PersonEntry[]>(join(this.dataDir, "persons.json")))
+    if (!this.cache.persons) {
+      this.cache.persons = toMap(
+        readJson<PersonEntry[]>(join(this.dataDir, "persons.json")),
+      )
+    }
+    return this.cache.persons
   }
 
   getProjects(): Map<number, ProjectEntry> {
-    return toMap(readJson<ProjectEntry[]>(join(this.dataDir, "projects.json")))
+    if (!this.cache.projects) {
+      this.cache.projects = toMap(
+        readJson<ProjectEntry[]>(join(this.dataDir, "projects.json")),
+      )
+    }
+    return this.cache.projects
   }
 
   getClients(): Map<number, ClientEntry> {
-    return toMap(readJson<ClientEntry[]>(join(this.dataDir, "clients.json")))
+    if (!this.cache.clients) {
+      this.cache.clients = toMap(
+        readJson<ClientEntry[]>(join(this.dataDir, "clients.json")),
+      )
+    }
+    return this.cache.clients
   }
 
   getProjectTypes(): Map<number, ProjectTypeEntry> {
-    return toMap(
-      readJson<ProjectTypeEntry[]>(join(this.dataDir, "project-types.json")),
-    )
+    if (!this.cache.projectTypes) {
+      this.cache.projectTypes = toMap(
+        readJson<ProjectTypeEntry[]>(join(this.dataDir, "project-types.json")),
+      )
+    }
+    return this.cache.projectTypes
   }
 
   /** Resolves a person name from ID. Returns "Unknown (id)" if not found. */
