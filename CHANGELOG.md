@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.4.0](https://github.com/cesconix/mcp-wethod/releases/tag/v0.4.0) — 2026-02-26
+
+### Added
+
+- `setup` tool: two-step interactive onboarding (provide credentials and sync data, then identify yourself by person ID)
+- `reset` tool: wipe all local data and configuration to start setup from scratch
+- `WETHOD_PERSON_ID` environment variable for scripted/CI usage
+- Server setup mode: when unconfigured, only `setup` and `lookup_person` tools are registered with guided instructions
+- `performSync` shared function extracted from `sync` tool (reused by `setup`)
+
+### Changed
+
+- Server no longer requires `WETHOD_COMPANY` / `WETHOD_API_TOKEN` env vars at startup — interactive `setup` flow handles first-time configuration
+- Configuration stored in `~/.mcp-wethod/config.json`; env vars override it when all three are set
+- Data directory flattened to `~/.mcp-wethod/` (was `~/.mcp-wethod/{company}/`)
+- `createMcpServer()` reads config automatically — no options argument needed
+
+### Removed
+
+- Hard exit on missing env vars in `bin.mjs`
+
 ## [0.3.0](https://github.com/cesconix/mcp-wethod/releases/tag/v0.3.0) — 2026-02-26
 
 ### Added
