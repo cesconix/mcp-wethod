@@ -7,29 +7,44 @@
 
 MCP server for [Wethod](https://www.wethod.com/) project management — timesheet, planning, budgets, and team tools.
 
+
 ## Installation
 
 ```bash
 claude mcp add wethod -- npx mcp-wethod
 ```
 
-Set the required environment variables:
+On first use, the `setup` tool guides you through interactive configuration: company slug, API token, and SF6SESSID cookie. Credentials are stored in `~/.mcp-wethod/config.json`.
+
+For CI or scripted setups, pass all three environment variables to skip interactive setup:
 
 ```bash
 claude mcp add wethod \
   -e WETHOD_COMPANY=your-company \
   -e WETHOD_API_TOKEN=your-token \
+  -e WETHOD_PERSON_ID=your-person-id \
   -- npx mcp-wethod
 ```
 
 ### Environment Variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `WETHOD_COMPANY` | Yes | Company slug (used in `Wethod-Company` header) |
-| `WETHOD_API_TOKEN` | Yes | Bearer token for Wethod API authentication |
+When all three are set, environment variables override `config.json`.
 
-## Tools (21)
+| Variable | Description |
+|---|---|
+| `WETHOD_COMPANY` | Company slug (the part before `.wethod.com`) |
+| `WETHOD_API_TOKEN` | Bearer token for Wethod API authentication |
+| `WETHOD_PERSON_ID` | Your person ID in Wethod |
+
+
+## Tools (23)
+
+### Configuration
+
+| Tool | Description |
+|---|---|
+| `setup` | Two-step onboarding: provide credentials and sync data (`step=credentials`), then set your person ID (`step=identify`) |
+| `reset` | Delete all local data and configuration to start setup from scratch |
 
 ### Timesheet
 
@@ -82,6 +97,7 @@ claude mcp add wethod \
 |---|---|---|
 | `sync` | Fetch persons, projects, clients, and project types (requires SF6SESSID session cookie) | `GET /report/timetracking` `GET /api/clients` `GET /api/projects` |
 
+
 ## Prompts (2)
 
 | Prompt | Description |
@@ -89,14 +105,16 @@ claude mcp add wethod \
 | `timesheet-reminder` | Check team timesheet status and generate friendly reminders |
 | `weekly-summary` | Generate a weekly summary of team activity and project status |
 
+
 ## Data Sync
 
-The `sync` tool fetches reference data (persons, projects, clients) from the Wethod API and writes local YAML cache files. These files are used by the three `lookup_*` tools for fast, offline lookups.
+The `sync` tool fetches reference data (persons, projects, clients) from the Wethod API and writes local JSON cache files. These files are used by the `lookup_*` tools for fast, offline lookups.
 
 Data is stored in:
 
 ```
-~/.mcp-wethod/{company}/
+~/.mcp-wethod/
+├── config.json
 ├── persons.json
 ├── projects.json
 ├── clients.json
@@ -117,23 +135,25 @@ The `sync` tool requires an `SF6SESSID` cookie for accessing the timetracking re
 
 The session ID expires periodically — you'll need to retrieve a fresh one when it does.
 
+
 ## Multi-instance
 
-To connect to multiple Wethod companies, register separate MCP instances:
+To connect to multiple Wethod companies, register separate MCP instances using environment variables:
 
 ```bash
 claude mcp add wethod-acme \
   -e WETHOD_COMPANY=acme \
   -e WETHOD_API_TOKEN=token-for-acme \
+  -e WETHOD_PERSON_ID=person-id-for-acme \
   -- npx mcp-wethod
 
 claude mcp add wethod-globex \
   -e WETHOD_COMPANY=globex \
   -e WETHOD_API_TOKEN=token-for-globex \
+  -e WETHOD_PERSON_ID=person-id-for-globex \
   -- npx mcp-wethod
 ```
 
-Each instance gets its own data directory (`~/.mcp-wethod/acme/`, `~/.mcp-wethod/globex/`).
 
 ## Development
 
@@ -147,6 +167,7 @@ pnpm run build        # Build (tsc)
 ```
 
 Requires Node.js >= 22.
+
 
 ## License
 

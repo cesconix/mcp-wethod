@@ -31,7 +31,7 @@ export function registerListTimesheets(
     {
       title: "List Timesheets",
       description:
-        "List timesheet entries for a person. Supports filtering by project, date (with operator, e.g. 'gt:2026-01-01T00:00:00+01:00'), and pagination. Returns formatted text with date, hours, project ID, timesheet ID, and notes.",
+        "List timesheet entries for a person. Supports filtering by project, date (with operator, e.g. 'gt:2026-01-01'), and pagination. Returns formatted text with date, hours, project ID, timesheet ID, and notes.",
       inputSchema: {
         person_id: z
           .number()
@@ -46,7 +46,7 @@ export function registerListTimesheets(
           .string()
           .optional()
           .describe(
-            "Date filter with operator (e.g. 'gt:2026-01-01T00:00:00+01:00')",
+            "Date filter with operator (e.g. 'gt:2026-01-01')",
           ),
         limit: z
           .number()
