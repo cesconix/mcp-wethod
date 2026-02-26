@@ -45,9 +45,7 @@ export function registerListTimesheets(
         date: z
           .string()
           .optional()
-          .describe(
-            "Date filter with operator (e.g. 'gt:2026-01-01')",
-          ),
+          .describe("Date filter with operator (e.g. 'gt:2026-01-01')"),
         limit: z
           .number()
           .int()
