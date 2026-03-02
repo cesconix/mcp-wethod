@@ -38,6 +38,20 @@ export const PersonSchema = z.object({
 
 export const PersonArraySchema = z.array(PersonSchema)
 
+export const AllocationSchema = z.object({
+  id: z.number(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  date: z.string(),
+  hours: z.number(),
+  project_id: z.number(),
+  person_id: z.number(),
+  deleted_at: z.string().nullable(),
+})
+
+export const AllocationArraySchema = z.array(AllocationSchema)
+
 export type TimesheetResponse = z.infer<typeof TimesheetSchema>
 export type ProjectResponse = z.infer<typeof ProjectSchema>
 export type PersonResponse = z.infer<typeof PersonSchema>
+export type AllocationResponse = z.infer<typeof AllocationSchema>
