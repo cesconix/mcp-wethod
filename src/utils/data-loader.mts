@@ -131,4 +131,12 @@ export class DataLoader {
     const c = this.getClients().get(id)
     return c ? c.name : `Unknown (${id})`
   }
+
+  /** Resolves a project name from ID. Includes client name if available. Returns "Unknown (id)" if not found. */
+  projectName(id: number): string {
+    const p = this.getProjects().get(id)
+    if (!p) return `Unknown (${id})`
+    if (p.client) return `${p.name} (${p.client})`
+    return p.name
+  }
 }
