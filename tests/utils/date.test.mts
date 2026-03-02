@@ -3,6 +3,7 @@ import {
   addDays,
   formatISODate,
   getCurrentWeekMonday,
+  getWeekdaysInRange,
   isTodayOrPast,
 } from "../../src/utils/date.mjs"
 
@@ -55,5 +56,56 @@ describe("isTodayOrPast", () => {
   it("returns true for today", () => {
     const today = formatISODate(new Date())
     expect(isTodayOrPast(today)).toBe(true)
+  })
+})
+
+describe("getWeekdaysInRange", () => {
+  it("returns weekdays for a Mon-Fri week", () => {
+    expect(getWeekdaysInRange("2026-03-02", "2026-03-06")).toEqual([
+      "2026-03-02",
+      "2026-03-03",
+      "2026-03-04",
+      "2026-03-05",
+      "2026-03-06",
+    ])
+  })
+
+  it("skips Saturday and Sunday", () => {
+    // Mon Mar 2 through Mon Mar 9 — skips Sat Mar 7 and Sun Mar 8
+    expect(getWeekdaysInRange("2026-03-02", "2026-03-09")).toEqual([
+      "2026-03-02",
+      "2026-03-03",
+      "2026-03-04",
+      "2026-03-05",
+      "2026-03-06",
+      "2026-03-09",
+    ])
+  })
+
+  it("returns empty array when start > end", () => {
+    expect(getWeekdaysInRange("2026-03-10", "2026-03-02")).toEqual([])
+  })
+
+  it("returns single day when start === end on a weekday", () => {
+    expect(getWeekdaysInRange("2026-03-02", "2026-03-02")).toEqual([
+      "2026-03-02",
+    ])
+  })
+
+  it("returns empty when range is only a weekend", () => {
+    // Sat Mar 7 to Sun Mar 8
+    expect(getWeekdaysInRange("2026-03-07", "2026-03-08")).toEqual([])
+  })
+
+  it("handles a full month", () => {
+    const result = getWeekdaysInRange("2026-03-01", "2026-03-31")
+    // March 2026: starts on Sun, 31 days. Weekdays = 22
+    expect(result.length).toBe(22)
+    // Verify no weekends
+    for (const d of result) {
+      const day = new Date(`${d}T00:00:00`).getDay()
+      expect(day).toBeGreaterThanOrEqual(1)
+      expect(day).toBeLessThanOrEqual(5)
+    }
   })
 })

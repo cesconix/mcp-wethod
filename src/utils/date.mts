@@ -42,3 +42,23 @@ export function isTodayOrPast(dateStr: string): boolean {
   const today = formatISODate(new Date())
   return dateStr <= today
 }
+
+/**
+ * Returns all weekday dates (Mon-Fri) in the range [dateFrom, dateTo].
+ * Both bounds are inclusive. Returns YYYY-MM-DD strings.
+ */
+export function getWeekdaysInRange(dateFrom: string, dateTo: string): string[] {
+  const result: string[] = []
+  const current = new Date(`${dateFrom}T00:00:00`)
+  const end = new Date(`${dateTo}T00:00:00`)
+
+  while (current <= end) {
+    const day = current.getDay()
+    if (day >= 1 && day <= 5) {
+      result.push(formatISODate(current))
+    }
+    current.setDate(current.getDate() + 1)
+  }
+
+  return result
+}
