@@ -41,6 +41,7 @@ type ApiProject = {
   client_id: number
   pm_id: number | null
   is_archived: boolean
+  project_type: number | null
 }
 
 // --- Timetracking report types ---
@@ -176,7 +177,7 @@ export function buildPersons(
 
 export function buildProjects(
   projects: Map<number, TimetrackingProject>,
-  apiProjectMap: Map<number, { client_id: number; pm_id: number | null }>,
+  apiProjectMap: Map<number, { client_id: number; pm_id: number | null; project_type_id: number | null }>,
   clientMap: Map<number, string>,
 ): ProjectEntry[] {
   return [...projects.values()]
@@ -190,6 +191,7 @@ export function buildProjects(
         client: clientId !== null ? (clientMap.get(clientId) ?? null) : null,
         client_id: clientId,
         pm_id: api?.pm_id ?? null,
+        project_type_id: api?.project_type_id ?? null,
       }
     })
     .sort((a, b) => a.id - b.id)
@@ -314,10 +316,14 @@ export async function performSync(options: {
 
   const apiProjectMap = new Map<
     number,
-    { client_id: number; pm_id: number | null }
+    { client_id: number; pm_id: number | null; project_type_id: number | null }
   >()
   for (const p of allApiProjects) {
-    apiProjectMap.set(p.id, { client_id: p.client_id, pm_id: p.pm_id })
+    apiProjectMap.set(p.id, {
+      client_id: p.client_id,
+      pm_id: p.pm_id,
+      project_type_id: p.project_type ?? null,
+    })
   }
 
   log.push(
