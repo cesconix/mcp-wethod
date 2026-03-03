@@ -41,7 +41,7 @@ type ApiProject = {
   client_id: number
   pm_id: number | null
   is_archived: boolean
-  project_type: number | null
+  project_type_id: number | null
 }
 
 // --- Timetracking report types ---
@@ -322,7 +322,7 @@ export async function performSync(options: {
     apiProjectMap.set(p.id, {
       client_id: p.client_id,
       pm_id: p.pm_id,
-      project_type_id: p.project_type ?? null,
+      project_type_id: p.project_type_id ?? null,
     })
   }
 
