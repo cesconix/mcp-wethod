@@ -13,13 +13,11 @@ import { z } from "zod"
 import { fetchAllocations } from "../utils/allocations.mjs"
 import type { WethodClient } from "../utils/client.mjs"
 import { DELETE_ANNOTATIONS } from "../utils/constants.mjs"
-import type { DataLoader } from "../utils/data-loader.mjs"
 import { formatToolError } from "../utils/format.mjs"
 
 export function registerDeleteAllocation(
   server: McpServer,
   client: WethodClient,
-  _data: DataLoader,
   personId: number,
 ) {
   server.registerTool(
@@ -141,8 +139,9 @@ export function registerDeleteAllocation(
 
         const deleted = results.filter((r) => r.ok)
         const failed = results.filter((r) => !r.ok)
+        const deletedIds = new Set(deleted.map((r) => r.id))
         const totalHours = allocations
-          .filter((a) => results.find((r) => r.id === a.id && r.ok))
+          .filter((a) => deletedIds.has(a.id))
           .reduce((sum, a) => sum + a.hours, 0)
 
         const lines: string[] = [

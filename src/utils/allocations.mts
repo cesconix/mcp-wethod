@@ -4,17 +4,9 @@
  */
 
 import type { WethodClient } from "./client.mjs"
+import type { AllocationResponse } from "./schemas.mjs"
 
-export type Allocation = {
-  id: number
-  created_at: string
-  updated_at: string
-  date: string
-  hours: number
-  project_id: number
-  person_id: number
-  deleted_at: string | null
-}
+export type Allocation = AllocationResponse
 
 /**
  * Fetches allocations from the Wethod API with date range filtering.
@@ -55,22 +47,4 @@ export async function fetchAllocations(
     if (params.date_to && a.date > params.date_to) return false
     return true
   })
-}
-
-/**
- * Returns total hours already allocated for a person on a specific date.
- * Used to pre-validate the 8h daily limit before creating new allocations.
- */
-export async function getDailyAllocatedHours(
-  client: WethodClient,
-  personId: number,
-  date: string,
-): Promise<number> {
-  const allocations = await fetchAllocations(client, {
-    person_id: personId,
-    date_from: date,
-    date_to: date,
-  })
-
-  return allocations.reduce((sum, a) => sum + a.hours, 0)
 }

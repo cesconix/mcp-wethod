@@ -98,7 +98,7 @@ export function registerAllTools(
   registerListAllocations(server, client, data)
   registerCreateAllocation(server, client, data, personId)
   registerUpdateAllocation(server, client, data)
-  registerDeleteAllocation(server, client, data, personId)
+  registerDeleteAllocation(server, client, personId)
 
   // Timesheet status & planning
   registerCheckTimesheetStatus(server, client)
