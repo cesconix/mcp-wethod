@@ -27,6 +27,7 @@ export type ProjectEntry = {
   client: string | null
   client_id: number | null
   pm_id: number | null
+  project_type_id: number | null
 }
 
 export type ClientEntry = {
