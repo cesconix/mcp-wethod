@@ -12,7 +12,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { Allocation } from "../utils/allocations.mjs"
-import { getDailyAllocatedHours } from "../utils/allocations.mjs"
+import { fetchAllocations } from "../utils/allocations.mjs"
 import type { WethodClient } from "../utils/client.mjs"
 import { WORK_HOURS_PER_DAY, WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
@@ -117,16 +117,24 @@ export function registerCreateAllocation(
           error?: string
         }[] = []
 
+        // Batch-fetch existing allocations for the entire range (1 API call instead of N)
+        const existingAllocations = await fetchAllocations(client, {
+          person_id: personId,
+          date_from: dates[0],
+          date_to: dates[dates.length - 1],
+        })
+
+        const hoursByDate = new Map<string, number>()
+        for (const a of existingAllocations) {
+          hoursByDate.set(a.date, (hoursByDate.get(a.date) ?? 0) + a.hours)
+        }
+
         // Execute all creates in parallel
         await Promise.all(
           dates.map(async (date) => {
             try {
               // Check 8h daily limit
-              const existing = await getDailyAllocatedHours(
-                client,
-                personId,
-                date,
-              )
+              const existing = hoursByDate.get(date) ?? 0
               if (existing + params.hours > WORK_HOURS_PER_DAY) {
                 results.push({
                   date,
