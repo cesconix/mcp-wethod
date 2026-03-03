@@ -8,24 +8,21 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
+import { fetchAllocations } from "../utils/allocations.mjs"
 import type { WethodClient } from "../utils/client.mjs"
 import {
   READONLY_ANNOTATIONS,
   WORK_HOURS_PER_DAY,
 } from "../utils/constants.mjs"
+import type { DataLoader } from "../utils/data-loader.mjs"
 import { addDays, getCurrentWeekMonday } from "../utils/date.mjs"
 import { formatToolError } from "../utils/format.mjs"
 
-type Allocation = {
-  id: number
-  date: string
-  hours: number
-  project_id: number
-  person_id: number
-  deleted_at: string | null
-}
-
-export function registerGetWeeklyPlan(server: McpServer, client: WethodClient) {
+export function registerGetWeeklyPlan(
+  server: McpServer,
+  client: WethodClient,
+  data: DataLoader,
+) {
   server.registerTool(
     "get_weekly_plan",
     {
@@ -55,28 +52,15 @@ export function registerGetWeeklyPlan(server: McpServer, client: WethodClient) {
         // Fetch allocations for all persons in parallel
         const results = await Promise.all(
           params.person_ids.map(async (personId) => {
-            const allocations = await client.request<Allocation[]>(
-              "GET",
-              "/api/people-allocations",
-              {
-                params: {
-                  person_id: personId,
-                  date: `gte:${dateFrom}`,
-                  limit: 100,
-                  offset: 0,
-                },
-              },
-            )
-
-            // Filter to date range and exclude soft-deleted
-            const filtered = allocations.filter(
-              (a) =>
-                a.date >= dateFrom && a.date <= dateTo && a.deleted_at === null,
-            )
+            const allocations = await fetchAllocations(client, {
+              person_id: personId,
+              date_from: dateFrom,
+              date_to: dateTo,
+            })
 
             // Group by project and sum hours
             const projectHours = new Map<number, number>()
-            for (const a of filtered) {
+            for (const a of allocations) {
               projectHours.set(
                 a.project_id,
                 (projectHours.get(a.project_id) ?? 0) + a.hours,
@@ -91,14 +75,16 @@ export function registerGetWeeklyPlan(server: McpServer, client: WethodClient) {
         const blocks: string[] = []
 
         for (const { personId, projectHours } of results) {
-          const lines: string[] = [`Person ${personId}:`]
+          const personName = data.personName(personId)
+          const lines: string[] = [`${personName}:`]
 
           if (projectHours.size === 0) {
             lines.push("  No allocations")
           } else {
             for (const [projectId, hours] of projectHours) {
               const days = Math.round((hours / WORK_HOURS_PER_DAY) * 10) / 10
-              lines.push(`  Project ${projectId}: ${hours}h (${days} days)`)
+              const projectName = data.projectName(projectId)
+              lines.push(`  ${projectName}: ${hours}h (${days} days)`)
             }
           }
 

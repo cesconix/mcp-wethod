@@ -35,12 +35,15 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { registerTimesheetReminderPrompt } from "./prompts/timesheet-reminder.mjs"
 import { registerWeeklySummaryPrompt } from "./prompts/weekly-summary.mjs"
 import { registerCheckTimesheetStatus } from "./tools/check-timesheet-status.mjs"
+import { registerCreateAllocation } from "./tools/create-allocation.mjs"
 import { registerCreateTimesheet } from "./tools/create-timesheet.mjs"
+import { registerDeleteAllocation } from "./tools/delete-allocation.mjs"
 import { registerDeleteTimesheet } from "./tools/delete-timesheet.mjs"
 import { registerGetAvailability } from "./tools/get-availability.mjs"
 import { registerGetProject } from "./tools/get-project.mjs"
 import { registerGetTeamTimesheet } from "./tools/get-team-timesheet.mjs"
 import { registerGetWeeklyPlan } from "./tools/get-weekly-plan.mjs"
+import { registerListAllocations } from "./tools/list-allocations.mjs"
 import { registerListBudgets } from "./tools/list-budgets.mjs"
 import { registerListCapacities } from "./tools/list-capacities.mjs"
 import { registerListClients } from "./tools/list-clients.mjs"
@@ -56,6 +59,7 @@ import { registerLookupProjectType } from "./tools/lookup-project-type.mjs"
 import { registerReset } from "./tools/reset.mjs"
 import { registerSetup } from "./tools/setup.mjs"
 import { registerSync } from "./tools/sync.mjs"
+import { registerUpdateAllocation } from "./tools/update-allocation.mjs"
 import { registerUpdateTimesheet } from "./tools/update-timesheet.mjs"
 import { WethodClient, type WethodClientOptions } from "./utils/client.mjs"
 import { CONFIG_DIR, readConfig } from "./utils/config.mjs"
@@ -76,6 +80,7 @@ export function registerAllTools(
   server: McpServer,
   client: WethodClient,
   data: DataLoader,
+  personId: number,
 ) {
   // Local data lookups (from synced JSON files — required before using other tools)
   registerLookupPerson(server, data)
@@ -89,10 +94,16 @@ export function registerAllTools(
   registerUpdateTimesheet(server, client)
   registerDeleteTimesheet(server, client)
 
+  // Allocation CRUD
+  registerListAllocations(server, client, data)
+  registerCreateAllocation(server, client, data, personId)
+  registerUpdateAllocation(server, client, data)
+  registerDeleteAllocation(server, client, data, personId)
+
   // Timesheet status & planning
   registerCheckTimesheetStatus(server, client)
-  registerGetWeeklyPlan(server, client)
-  registerGetAvailability(server, client)
+  registerGetWeeklyPlan(server, client, data)
+  registerGetAvailability(server, client, data)
 
   // Team
   registerGetTeamTimesheet(server, client)
@@ -133,8 +144,9 @@ export function registerAll(
   data: DataLoader,
   dataDir: string,
   company: string,
+  personId: number,
 ) {
-  registerAllTools(server, client, data)
+  registerAllTools(server, client, data, personId)
   registerSync(server, client, dataDir, company, data)
   registerAllPrompts(server)
 }
@@ -197,7 +209,14 @@ export async function createMcpServer() {
       },
     )
 
-    registerAll(server, client, data, CONFIG_DIR, config.company)
+    registerAll(
+      server,
+      client,
+      data,
+      CONFIG_DIR,
+      config.company,
+      config.personId,
+    )
     registerReset(server)
 
     const transport = new StdioServerTransport()

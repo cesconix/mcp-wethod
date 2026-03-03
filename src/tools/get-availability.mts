@@ -8,23 +8,17 @@
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
+import { fetchAllocations } from "../utils/allocations.mjs"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS, WEEK_TOTAL_HOURS } from "../utils/constants.mjs"
+import type { DataLoader } from "../utils/data-loader.mjs"
 import { addDays, getCurrentWeekMonday } from "../utils/date.mjs"
 import { formatToolError } from "../utils/format.mjs"
-
-type Allocation = {
-  id: number
-  date: string
-  hours: number
-  project_id: number
-  person_id: number
-  deleted_at: string | null
-}
 
 export function registerGetAvailability(
   server: McpServer,
   client: WethodClient,
+  data: DataLoader,
 ) {
   server.registerTool(
     "get_availability",
@@ -53,28 +47,13 @@ export function registerGetAvailability(
         // Fetch allocations for all persons in parallel
         const results = await Promise.all(
           params.person_ids.map(async (personId) => {
-            const allocations = await client.request<Allocation[]>(
-              "GET",
-              "/api/people-allocations",
-              {
-                params: {
-                  person_id: personId,
-                  date: `gte:${weekMonday}`,
-                  limit: 100,
-                  offset: 0,
-                },
-              },
-            )
+            const allocations = await fetchAllocations(client, {
+              person_id: personId,
+              date_from: weekMonday,
+              date_to: weekFriday,
+            })
 
-            // Filter to Mon-Fri range and exclude soft-deleted
-            const filtered = allocations.filter(
-              (a) =>
-                a.date >= weekMonday &&
-                a.date <= weekFriday &&
-                a.deleted_at === null,
-            )
-
-            const totalHours = filtered.reduce((sum, a) => sum + a.hours, 0)
+            const totalHours = allocations.reduce((sum, a) => sum + a.hours, 0)
             return { personId, totalHours }
           }),
         )
@@ -83,6 +62,7 @@ export function registerGetAvailability(
         const lines: string[] = [`AVAILABILITY — Week of ${weekMonday}`, ""]
 
         for (const { personId, totalHours } of results) {
+          const personName = data.personName(personId)
           const available = Math.max(0, WEEK_TOTAL_HOURS - totalHours)
           const utilization = Math.round((totalHours / WEEK_TOTAL_HOURS) * 100)
 
@@ -90,7 +70,7 @@ export function registerGetAvailability(
             available === 0 ? "fully booked" : `${available}h available`
 
           lines.push(
-            `Person ${personId}: ${totalHours}/${WEEK_TOTAL_HOURS}h allocated (${utilization}%) — ${availPart}`,
+            `${personName}: ${totalHours}/${WEEK_TOTAL_HOURS}h allocated (${utilization}%) — ${availPart}`,
           )
         }
 
