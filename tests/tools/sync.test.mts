@@ -33,8 +33,8 @@ describe("sync tool", () => {
     ])
 
     const apiProjectMap = new Map([
-      [25965, { client_id: 58, pm_id: 42 }],
-      [30001, { client_id: 120, pm_id: null }],
+      [25965, { client_id: 58, pm_id: 42, project_type_id: 1 }],
+      [30001, { client_id: 120, pm_id: null, project_type_id: 2 }],
     ])
 
     const clientMap = new Map([
@@ -93,12 +93,14 @@ describe("sync tool", () => {
       expect(proj1?.client).toBe("Acme Corp")
       expect(proj1?.client_id).toBe(58)
       expect(proj1?.pm_id).toBe(42)
+      expect(proj1?.project_type_id).toBe(1)
 
       const proj2 = parsed.get(30001)
       expect(proj2?.name).toBe("Mobile App")
       expect(proj2?.job_order).toBeNull()
       expect(proj2?.client).toBe("Beta Industries")
       expect(proj2?.pm_id).toBeNull()
+      expect(proj2?.project_type_id).toBe(2)
     })
 
     it("clients round-trip", () => {
