@@ -40,6 +40,7 @@ import { registerCreateTimesheet } from "./tools/create-timesheet.mjs"
 import { registerDeleteAllocation } from "./tools/delete-allocation.mjs"
 import { registerDeleteTimesheet } from "./tools/delete-timesheet.mjs"
 import { registerGetAvailability } from "./tools/get-availability.mjs"
+import { registerGetBillabilityReport } from "./tools/get-billability-report.mjs"
 import { registerGetProject } from "./tools/get-project.mjs"
 import { registerGetTeamTimesheet } from "./tools/get-team-timesheet.mjs"
 import { registerGetWeeklyPlan } from "./tools/get-weekly-plan.mjs"
@@ -107,6 +108,9 @@ export function registerAllTools(
 
   // Team
   registerGetTeamTimesheet(server, client)
+
+  // Reporting
+  registerGetBillabilityReport(server, client, data)
 
   // Projects
   registerListProjects(server, client)
