@@ -337,7 +337,10 @@ export function buildLevels(
 
 export function buildProjects(
   projects: Map<number, TimetrackingProject>,
-  apiProjectMap: Map<number, { client_id: number; pm_id: number | null; project_type_id: number | null }>,
+  apiProjectMap: Map<
+    number,
+    { client_id: number; pm_id: number | null; project_type_id: number | null }
+  >,
   clientMap: Map<number, string>,
 ): ProjectEntry[] {
   return [...projects.values()]

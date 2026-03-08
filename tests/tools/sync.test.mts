@@ -3,12 +3,12 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 import {
-  type PersonEnrichment,
   buildClients,
   buildLevels,
   buildPersons,
   buildProjects,
   buildProjectTypes,
+  type PersonEnrichment,
 } from "../../src/tools/sync.mjs"
 import { DataLoader } from "../../src/utils/data-loader.mjs"
 
@@ -55,16 +55,19 @@ describe("sync tool", () => {
     ]
 
     const enrichmentByPersonId = new Map<number, PersonEnrichment>([
-      [42, {
-        level: "PL3",
-        department: "Technology",
-        position: "DXP, COMMERCE & MOBILE DIRECTOR",
-        hierarchy: "Director",
-        office: "Roncade",
-        location: "Roncade",
-        price_list: "Standard",
-        job_title: "Tech Director",
-      }],
+      [
+        42,
+        {
+          level: "PL3",
+          department: "Technology",
+          position: "DXP, COMMERCE & MOBILE DIRECTOR",
+          hierarchy: "Director",
+          office: "Roncade",
+          location: "Roncade",
+          price_list: "Standard",
+          job_title: "Tech Director",
+        },
+      ],
     ])
 
     it("persons round-trip", () => {
@@ -109,9 +112,25 @@ describe("sync tool", () => {
 
     it("levels round-trip", () => {
       const planningboardEmployees = [
-        { id: 42, level: { id: 10, name: "Price Level 3", short_name: "PL3", external: false } },
+        {
+          id: 42,
+          level: {
+            id: 10,
+            name: "Price Level 3",
+            short_name: "PL3",
+            external: false,
+          },
+        },
         { id: 99, level: null },
-        { id: 55, level: { id: 10, name: "Price Level 3", short_name: "PL3", external: false } },
+        {
+          id: 55,
+          level: {
+            id: 10,
+            name: "Price Level 3",
+            short_name: "PL3",
+            external: false,
+          },
+        },
       ]
       const levels = buildLevels(planningboardEmployees)
       writeFileSync(

@@ -29,12 +29,8 @@ export function registerGetBillabilityReport(
         person_ids: z
           .array(z.number().int())
           .describe("List of person IDs to query"),
-        date_from: z
-          .string()
-          .describe("Start date YYYY-MM-DD (inclusive)"),
-        date_to: z
-          .string()
-          .describe("End date YYYY-MM-DD (inclusive)"),
+        date_from: z.string().describe("Start date YYYY-MM-DD (inclusive)"),
+        date_to: z.string().describe("End date YYYY-MM-DD (inclusive)"),
       },
       annotations: READONLY_ANNOTATIONS,
     },
@@ -114,7 +110,12 @@ export function registerGetBillabilityReport(
         // Format output
         const blocks: string[] = []
 
-        for (const { personId, totalHours, billableHours, breakdown } of results) {
+        for (const {
+          personId,
+          totalHours,
+          billableHours,
+          breakdown,
+        } of results) {
           const personName = data.personName(personId)
 
           if (totalHours === 0) {
