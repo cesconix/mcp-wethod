@@ -80,42 +80,6 @@ export function registerUpdateTimesheet(
           }
         }
 
-        // Validate 8h daily limit when hours are being changed
-        if (params.hours !== undefined) {
-          const current = await client.request<Timesheet>(
-            "GET",
-            `/api/timesheets/${params.id}`,
-          )
-
-          const allForWeek = await client.request<Timesheet[]>(
-            "GET",
-            "/api/timesheets",
-            {
-              params: {
-                person_id: current.person_id,
-                date: `gte:${current.date}`,
-              },
-            },
-          )
-
-          const existingHours = allForWeek
-            .filter((ts) => ts.date === current.date && ts.id !== current.id)
-            .reduce((sum, ts) => sum + ts.hours, 0)
-          const totalHours = existingHours + params.hours
-
-          if (totalHours > WORK_HOURS_PER_DAY) {
-            return {
-              isError: true as const,
-              content: [
-                {
-                  type: "text" as const,
-                  text: `Cannot update: changing to ${params.hours}h would exceed the daily limit.\nOther entries for ${current.date}: ${existingHours}h\nTotal would be: ${totalHours}h (limit: ${WORK_HOURS_PER_DAY}h)`,
-                },
-              ],
-            }
-          }
-        }
-
         const timesheet = await client.request<Timesheet>(
           "PATCH",
           `/api/timesheets/${params.id}`,
