@@ -8,7 +8,24 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import type { DataLoader } from "../utils/data-loader.mjs"
+import type { DataLoader, PersonEntry } from "../utils/data-loader.mjs"
+
+function formatPerson(p: PersonEntry): string {
+  const parts = [`${p.id}: ${p.name} ${p.surname}`]
+  if (p.is_external) parts.push("(external)")
+  const details = [
+    p.level,
+    p.position,
+    p.department,
+    p.hierarchy,
+    p.office,
+    p.location,
+    p.job_title,
+    p.price_list,
+  ].filter(Boolean)
+  if (details.length > 0) parts.push(`| ${details.join(" | ")}`)
+  return parts.join(" ")
+}
 
 export function registerLookupPerson(server: McpServer, data: DataLoader) {
   server.registerTool(
@@ -16,14 +33,14 @@ export function registerLookupPerson(server: McpServer, data: DataLoader) {
     {
       title: "Lookup Person",
       description:
-        "Find a person by ID or search by name/surname. Reads from local synced data (no API call). Returns id, name, surname, is_external.",
+        "Find a person by ID or search by name/surname. Reads from local synced data (no API call). Returns id, name, surname, is_external, level, department, position, hierarchy, office, location, price_list, job_title.",
       inputSchema: {
         id: z.number().int().optional().describe("Person ID for direct lookup"),
         search: z
           .string()
           .optional()
           .describe(
-            "Search query to filter by name or surname (case-insensitive)",
+            "Search query to filter by name, surname, department, position, office, or location (case-insensitive)",
           ),
       },
       annotations: READONLY_ANNOTATIONS,
@@ -59,20 +76,24 @@ export function registerLookupPerson(server: McpServer, data: DataLoader) {
           content: [
             {
               type: "text" as const,
-              text: `${p.id}: ${p.name} ${p.surname}${p.is_external ? " (external)" : ""}`,
+              text: formatPerson(p),
             },
           ],
         }
       }
 
-      // Search by name
+      // Search by name and enrichment fields
       if (params.search) {
         const query = params.search.toLowerCase()
         const matches = [...persons.values()].filter(
           (p) =>
             p.name.toLowerCase().includes(query) ||
             p.surname.toLowerCase().includes(query) ||
-            `${p.name} ${p.surname}`.toLowerCase().includes(query),
+            `${p.name} ${p.surname}`.toLowerCase().includes(query) ||
+            p.department?.toLowerCase().includes(query) ||
+            p.position?.toLowerCase().includes(query) ||
+            p.office?.toLowerCase().includes(query) ||
+            p.location?.toLowerCase().includes(query),
         )
 
         if (matches.length === 0) {
@@ -86,10 +107,7 @@ export function registerLookupPerson(server: McpServer, data: DataLoader) {
           }
         }
 
-        const lines = matches.map(
-          (p) =>
-            `${p.id}: ${p.name} ${p.surname}${p.is_external ? " (ext)" : ""}`,
-        )
+        const lines = matches.map((p) => formatPerson(p))
         return {
           content: [{ type: "text" as const, text: lines.join("\n") }],
         }
