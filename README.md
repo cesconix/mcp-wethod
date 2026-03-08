@@ -37,7 +37,7 @@ When all three are set, environment variables override `config.json`.
 | `WETHOD_PERSON_ID` | Your person ID in Wethod |
 
 
-## Tools (23)
+## Tools (28)
 
 ### Configuration
 
@@ -57,6 +57,15 @@ When all three are set, environment variables override `config.json`.
 | `check_timesheet_status` | Check timesheet completeness for a person for a given week | `GET /api/timesheets` |
 | `list_timesheet_logs` | List timesheet change logs for auditing | `GET /api/timesheet-logs` |
 
+### Allocations
+
+| Tool | Description | Endpoint |
+|---|---|---|
+| `list_allocations` | List people allocations with filters for person, project, and date range | `GET /api/people-allocations` |
+| `create_allocation` | Create allocation entries (single date or date range for weekdays Mon-Fri, validates 8h daily limit) | `POST /api/people-allocations` |
+| `update_allocation` | Update hours of an existing allocation by ID | `PATCH /api/people-allocations/:id` |
+| `delete_allocation` | Delete allocation entries (single by ID or range by date, optionally filtered by project) | `DELETE /api/people-allocations/:id` |
+
 ### Team & Planning
 
 | Tool | Description | Endpoint |
@@ -64,6 +73,12 @@ When all three are set, environment variables override `config.json`.
 | `get_team_timesheet` | Check timesheet completion status for multiple people | `GET /api/timesheets` |
 | `get_weekly_plan` | Show who is working on what this week from allocation data | `GET /api/people-allocations` |
 | `get_availability` | Show utilization and available capacity per person | `GET /api/people-allocations` |
+
+### Reporting
+
+| Tool | Description | Endpoint |
+|---|---|---|
+| `get_billability_report` | Calculate billability percentage for multiple people over a date range | `GET /api/timesheets` |
 
 ### Projects
 
@@ -102,8 +117,8 @@ When all three are set, environment variables override `config.json`.
 
 | Prompt | Description |
 |---|---|
-| `timesheet-reminder` | Check team timesheet status and generate friendly reminders |
-| `weekly-summary` | Generate a weekly summary of team activity and project status |
+| `timesheet_reminder` | Check team timesheet status and generate friendly reminders |
+| `weekly_summary` | Generate a weekly summary of team activity and project status |
 
 
 ## Data Sync
