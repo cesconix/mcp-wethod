@@ -14,17 +14,8 @@ import {
   WORK_HOURS_PER_DAY,
 } from "../utils/constants.mjs"
 import { addDays, getCurrentWeekMonday, isTodayOrPast } from "../utils/date.mjs"
+import { fetchAllTimesheets } from "../utils/fetch-all-timesheets.mjs"
 import { formatToolError } from "../utils/format.mjs"
-
-type Timesheet = {
-  id: number
-  date: string
-  hours: number
-  notes: string | null
-  mode: string
-  project_id: number
-  person_id: number
-}
 
 const WORK_DAYS = ["mon", "tue", "wed", "thu", "fri"] as const
 
@@ -67,16 +58,10 @@ export function registerGetTeamTimesheet(
         // Fetch timesheets for all persons in parallel
         const results = await Promise.all(
           params.person_ids.map(async (personId) => {
-            const timesheets = await client.request<Timesheet[]>(
-              "GET",
-              "/api/timesheets",
-              {
-                params: {
-                  person_id: personId,
-                  date: `gte:${weekMonday}`,
-                },
-              },
-            )
+            const timesheets = await fetchAllTimesheets(client, {
+              person_id: personId,
+              date_gte: weekMonday,
+            })
 
             // Filter to just this week (Mon through Sun)
             const weekTimesheets = timesheets.filter(

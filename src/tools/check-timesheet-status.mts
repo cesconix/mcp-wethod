@@ -14,17 +14,8 @@ import {
   WORK_HOURS_PER_DAY,
 } from "../utils/constants.mjs"
 import { addDays, getCurrentWeekMonday, isTodayOrPast } from "../utils/date.mjs"
+import { fetchAllTimesheets } from "../utils/fetch-all-timesheets.mjs"
 import { formatHours, formatToolError } from "../utils/format.mjs"
-
-type Timesheet = {
-  id: number
-  date: string
-  hours: number
-  notes: string | null
-  mode: string
-  project_id: number
-  person_id: number
-}
 
 const WORK_DAYS = ["mon", "tue", "wed", "thu", "fri"] as const
 
@@ -57,16 +48,10 @@ export function registerCheckTimesheetStatus(
         const weekMonday = params.week_start ?? getCurrentWeekMonday()
 
         // Fetch timesheets for the week
-        const timesheets = await client.request<Timesheet[]>(
-          "GET",
-          "/api/timesheets",
-          {
-            params: {
-              person_id: params.person_id,
-              date: `gte:${weekMonday}`,
-            },
-          },
-        )
+        const timesheets = await fetchAllTimesheets(client, {
+          person_id: params.person_id,
+          date_gte: weekMonday,
+        })
 
         // Filter to just this week (Mon through Sun)
         const weekEnd = addDays(weekMonday, 6)

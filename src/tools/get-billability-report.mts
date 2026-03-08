@@ -11,17 +11,8 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
+import { fetchAllTimesheets } from "../utils/fetch-all-timesheets.mjs"
 import { formatToolError } from "../utils/format.mjs"
-
-type Timesheet = {
-  id: number
-  date: string
-  hours: number
-  notes: string | null
-  mode: string
-  project_id: number
-  person_id: number
-}
 
 export function registerGetBillabilityReport(
   server: McpServer,
@@ -55,16 +46,10 @@ export function registerGetBillabilityReport(
         // Fetch timesheets for all persons in parallel
         const results = await Promise.all(
           params.person_ids.map(async (personId) => {
-            const timesheets = await client.request<Timesheet[]>(
-              "GET",
-              "/api/timesheets",
-              {
-                params: {
-                  person_id: personId,
-                  date: `gte:${params.date_from}`,
-                },
-              },
-            )
+            const timesheets = await fetchAllTimesheets(client, {
+              person_id: personId,
+              date_gte: params.date_from,
+            })
 
             // Filter to date range (API only supports gte, so filter upper bound client-side)
             const filtered = timesheets.filter(
