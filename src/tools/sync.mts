@@ -21,6 +21,7 @@ import { WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import type {
   ClientEntry,
   DataLoader,
+  LevelEntry,
   PersonEntry,
   ProjectEntry,
   ProjectTypeEntry,
@@ -73,6 +74,96 @@ type TimetrackingResponse = {
     employees: TimetrackingEmployee[]
     project: TimetrackingProject[]
     project_types: TimetrackingProjectType[]
+  }
+}
+
+// --- Planningboard employee types ---
+
+type PlanningboardLevel = {
+  id: number
+  name: string
+  short_name: string
+  external: boolean
+}
+
+type PlanningboardTag = {
+  id: number
+  name: string
+  category: { id: number; name: string } | null
+}
+
+type PlanningboardLocation = {
+  id: number
+  name: string
+}
+
+type PlanningboardPriceList = {
+  id: number
+  name: string
+}
+
+type PlanningboardEmployee = {
+  id: number
+  level: PlanningboardLevel | null
+  tags: PlanningboardTag[] | null
+  location: PlanningboardLocation | null
+  price_list: PlanningboardPriceList | null
+  job_title: string | null
+}
+
+type PlanningboardResponse = {
+  code: number
+  status: string
+  data: PlanningboardEmployee[]
+}
+
+// --- Person enrichment ---
+
+export type PersonEnrichment = {
+  level: string | null
+  department: string | null
+  position: string | null
+  hierarchy: string | null
+  office: string | null
+  location: string | null
+  price_list: string | null
+  job_title: string | null
+}
+
+function extractTag(
+  tags: PlanningboardTag[] | null,
+  category: string,
+): string | null {
+  if (!tags) return null
+  const tag = tags.find((t) => t.category?.name === category)
+  return tag?.name ?? null
+}
+
+/** Fetch employees with level data from the planningboard endpoint. */
+export async function fetchPlanningboardEmployees(
+  sessionId: string,
+  company: string,
+): Promise<PlanningboardResponse | null> {
+  try {
+    const response = await fetch(
+      "https://api.wethod.com/planningboard/employees",
+      {
+        headers: {
+          cookie: `SF6SESSID=${sessionId}; companyHostname=${company}.wethod.com`,
+          origin: `https://${company}.wethod.com`,
+          referer: `https://${company}.wethod.com/`,
+        },
+      },
+    )
+
+    if (!response.ok) return null
+
+    const json = (await response.json()) as PlanningboardResponse
+    if (json.status !== "Ok") return null
+
+    return json
+  } catch {
+    return null
   }
 }
 
@@ -133,6 +224,47 @@ async function fetchWeek(
   }
 }
 
+// --- Report endpoint types ---
+
+type ReportItem = {
+  project: { id: number }
+  project_type: { id: number } | null
+}
+
+type ReportResponse = {
+  status: string
+  data: ReportItem[]
+}
+
+/** Fetch project type mapping from /report/ endpoint using session cookie. */
+export async function fetchReport(
+  sessionId: string,
+  company: string,
+): Promise<Map<number, number>> {
+  try {
+    const response = await fetch("https://api.wethod.com/report/", {
+      headers: {
+        cookie: `SF6SESSID=${sessionId}; companyHostname=${company}.wethod.com`,
+        origin: `https://${company}.wethod.com`,
+        referer: `https://${company}.wethod.com/`,
+      },
+    })
+    if (!response.ok) return new Map()
+    const json = (await response.json()) as ReportResponse
+    if (json.status !== "Ok") return new Map()
+
+    const map = new Map<number, number>()
+    for (const item of json.data) {
+      if (item.project_type?.id != null) {
+        map.set(item.project.id, item.project_type.id)
+      }
+    }
+    return map
+  } catch {
+    return new Map()
+  }
+}
+
 /** Paginated fetch from the public Wethod API. */
 async function fetchAllPages<T>(
   client: WethodClient,
@@ -164,15 +296,43 @@ function sleep(ms: number): Promise<void> {
 
 export function buildPersons(
   employees: Map<number, TimetrackingEmployee>,
+  enrichmentByPersonId: Map<number, PersonEnrichment>,
 ): PersonEntry[] {
   return [...employees.values()]
-    .map((e) => ({
-      id: e.id,
-      name: e.name,
-      surname: e.surname,
-      is_external: e.is_external,
-    }))
+    .map((e) => {
+      const enrichment = enrichmentByPersonId.get(e.id)
+      return {
+        id: e.id,
+        name: e.name,
+        surname: e.surname,
+        is_external: e.is_external,
+        level: enrichment?.level ?? null,
+        department: enrichment?.department ?? null,
+        position: enrichment?.position ?? null,
+        hierarchy: enrichment?.hierarchy ?? null,
+        office: enrichment?.office ?? null,
+        location: enrichment?.location ?? null,
+        price_list: enrichment?.price_list ?? null,
+        job_title: enrichment?.job_title ?? null,
+      }
+    })
     .sort((a, b) => a.id - b.id)
+}
+
+export function buildLevels(
+  planningboardEmployees: PlanningboardEmployee[],
+): LevelEntry[] {
+  const seen = new Map<number, LevelEntry>()
+  for (const emp of planningboardEmployees) {
+    if (emp.level && !seen.has(emp.level.id)) {
+      seen.set(emp.level.id, {
+        id: emp.level.id,
+        name: emp.level.name,
+        short_name: emp.level.short_name,
+      })
+    }
+  }
+  return [...seen.values()].sort((a, b) => a.id - b.id)
 }
 
 export function buildProjects(
@@ -224,6 +384,7 @@ export type SyncResult = {
   projects: ProjectEntry[]
   clients: ClientEntry[]
   types: ProjectTypeEntry[]
+  levels: LevelEntry[]
 }
 
 /**
@@ -330,12 +491,51 @@ export async function performSync(options: {
     `Phase 2: ${allClients.length} clients, ${allApiProjects.length} projects from API`,
   )
 
+  // --- Phase 2.5: Project type mapping from /report/ (session cookie) ---
+
+  const reportTypeMap = await fetchReport(sessionId, company)
+  let enriched = 0
+  for (const [projectId, projectTypeId] of reportTypeMap) {
+    const entry = apiProjectMap.get(projectId)
+    if (entry && entry.project_type_id === null) {
+      entry.project_type_id = projectTypeId
+      enriched++
+    }
+  }
+
+  log.push(
+    `Phase 2.5: ${reportTypeMap.size} project type mappings from /report/, ${enriched} projects enriched`,
+  )
+
+  // --- Phase 3: Employee enrichment from planningboard (session cookie) ---
+
+  const planningboard = await fetchPlanningboardEmployees(sessionId, company)
+  const planningboardEmployees = planningboard?.data ?? []
+  const enrichmentByPersonId = new Map<number, PersonEnrichment>()
+  for (const emp of planningboardEmployees) {
+    enrichmentByPersonId.set(emp.id, {
+      level: emp.level?.short_name ?? null,
+      department: extractTag(emp.tags, "Department"),
+      position: extractTag(emp.tags, "Position"),
+      hierarchy: extractTag(emp.tags, "Hierarchy"),
+      office: extractTag(emp.tags, "Office"),
+      location: emp.location?.name ?? null,
+      price_list: emp.price_list?.name ?? null,
+      job_title: emp.job_title ?? null,
+    })
+  }
+
+  log.push(
+    `Phase 3: ${planningboardEmployees.length} employees from planningboard, ${enrichmentByPersonId.size} enriched`,
+  )
+
   // --- Build data and write JSON files ---
 
-  const persons = buildPersons(employeesMap)
+  const persons = buildPersons(employeesMap, enrichmentByPersonId)
   const projects = buildProjects(projectsMap, apiProjectMap, clientMap)
   const clients = buildClients(allClients)
   const types = buildProjectTypes(projectTypes)
+  const levels = buildLevels(planningboardEmployees)
 
   mkdirSync(dataDir, { recursive: true })
   writeFileSync(
@@ -358,14 +558,19 @@ export async function performSync(options: {
     JSON.stringify(types, null, 2),
     "utf-8",
   )
+  writeFileSync(
+    join(dataDir, "levels.json"),
+    JSON.stringify(levels, null, 2),
+    "utf-8",
+  )
 
   writeFileSync(lastSyncFile, mondays[mondays.length - 1], "utf-8")
 
   log.push(
-    `Saved to ${dataDir}/: ${persons.length} persons, ${projects.length} projects, ${clients.length} clients, ${types.length} types`,
+    `Saved to ${dataDir}/: ${persons.length} persons, ${projects.length} projects, ${clients.length} clients, ${types.length} types, ${levels.length} levels`,
   )
 
-  return { log, persons, projects, clients, types }
+  return { log, persons, projects, clients, types, levels }
 }
 
 // --- Tool registration ---

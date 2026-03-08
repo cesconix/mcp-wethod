@@ -3,7 +3,9 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 import {
+  type PersonEnrichment,
   buildClients,
+  buildLevels,
   buildPersons,
   buildProjects,
   buildProjectTypes,
@@ -52,9 +54,22 @@ describe("sync tool", () => {
       { id: 2, name: "General", chargeable: 0, hoursType: "workable" },
     ]
 
+    const enrichmentByPersonId = new Map<number, PersonEnrichment>([
+      [42, {
+        level: "PL3",
+        department: "Technology",
+        position: "DXP, COMMERCE & MOBILE DIRECTOR",
+        hierarchy: "Director",
+        office: "Roncade",
+        location: "Roncade",
+        price_list: "Standard",
+        job_title: "Tech Director",
+      }],
+    ])
+
     it("persons round-trip", () => {
       mkdirSync(tempDir, { recursive: true })
-      const persons = buildPersons(employeesMap)
+      const persons = buildPersons(employeesMap, enrichmentByPersonId)
       writeFileSync(
         join(tempDir, "persons.json"),
         JSON.stringify(persons),
@@ -69,10 +84,51 @@ describe("sync tool", () => {
       expect(p1?.name).toBe("Salvatore")
       expect(p1?.surname).toBe("Lanzafame")
       expect(p1?.is_external).toBe(false)
+      expect(p1?.level).toBe("PL3")
+      expect(p1?.department).toBe("Technology")
+      expect(p1?.position).toBe("DXP, COMMERCE & MOBILE DIRECTOR")
+      expect(p1?.hierarchy).toBe("Director")
+      expect(p1?.office).toBe("Roncade")
+      expect(p1?.location).toBe("Roncade")
+      expect(p1?.price_list).toBe("Standard")
+      expect(p1?.job_title).toBe("Tech Director")
 
+      // Person without enrichment gets nulls
       const p2 = parsed.get(99)
       expect(p2?.name).toBe("Marco")
       expect(p2?.is_external).toBe(true)
+      expect(p2?.level).toBeNull()
+      expect(p2?.department).toBeNull()
+      expect(p2?.position).toBeNull()
+      expect(p2?.hierarchy).toBeNull()
+      expect(p2?.office).toBeNull()
+      expect(p2?.location).toBeNull()
+      expect(p2?.price_list).toBeNull()
+      expect(p2?.job_title).toBeNull()
+    })
+
+    it("levels round-trip", () => {
+      const planningboardEmployees = [
+        { id: 42, level: { id: 10, name: "Price Level 3", short_name: "PL3", external: false } },
+        { id: 99, level: null },
+        { id: 55, level: { id: 10, name: "Price Level 3", short_name: "PL3", external: false } },
+      ]
+      const levels = buildLevels(planningboardEmployees)
+      writeFileSync(
+        join(tempDir, "levels.json"),
+        JSON.stringify(levels),
+        "utf-8",
+      )
+
+      expect(levels).toHaveLength(1)
+      expect(levels[0].id).toBe(10)
+      expect(levels[0].name).toBe("Price Level 3")
+      expect(levels[0].short_name).toBe("PL3")
+
+      const loader = new DataLoader(tempDir)
+      const parsed = loader.getLevels()
+      expect(parsed.size).toBe(1)
+      expect(parsed.get(10)?.short_name).toBe("PL3")
     })
 
     it("projects round-trip", () => {

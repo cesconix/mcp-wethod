@@ -18,6 +18,20 @@ export type PersonEntry = {
   name: string
   surname: string
   is_external: boolean
+  level: string | null
+  department: string | null
+  position: string | null
+  hierarchy: string | null
+  office: string | null
+  location: string | null
+  price_list: string | null
+  job_title: string | null
+}
+
+export type LevelEntry = {
+  id: number
+  name: string
+  short_name: string
 }
 
 export type ProjectEntry = {
@@ -71,6 +85,7 @@ export class DataLoader {
     projects: null as Map<number, ProjectEntry> | null,
     clients: null as Map<number, ClientEntry> | null,
     projectTypes: null as Map<number, ProjectTypeEntry> | null,
+    levels: null as Map<number, LevelEntry> | null,
   }
 
   constructor(dataDir: string) {
@@ -83,6 +98,7 @@ export class DataLoader {
     this.cache.projects = null
     this.cache.clients = null
     this.cache.projectTypes = null
+    this.cache.levels = null
   }
 
   getPersons(): Map<number, PersonEntry> {
@@ -110,6 +126,15 @@ export class DataLoader {
       )
     }
     return this.cache.clients
+  }
+
+  getLevels(): Map<number, LevelEntry> {
+    if (!this.cache.levels) {
+      this.cache.levels = toMap(
+        readJson<LevelEntry[]>(join(this.dataDir, "levels.json")),
+      )
+    }
+    return this.cache.levels
   }
 
   getProjectTypes(): Map<number, ProjectTypeEntry> {
