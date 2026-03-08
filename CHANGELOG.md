@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.5.0](https://github.com/cesconix/mcp-wethod/releases/tag/v0.5.0) — 2026-03-08
+
+### Added
+
+- `PersonEntry` enriched with department, position, hierarchy, office, location, price_list, and job_title from planningboard tags
+- `LevelEntry` type and `levels.json` synced from planningboard data
+- `fetchAllTimesheets` shared utility with pagination support (handles >100 entries)
+- `lookup_person` now supports searching by department, position, office, and location
+- Project type mapping from `/report/` endpoint (Phase 2.5 in sync)
+- `project_type_id` field on `ProjectEntry` for billability cross-referencing
+- `get_billability_report` tool for calculating team billability over date ranges
+
+### Changed
+
+- `lookup_person` displays enriched fields in pipe-separated format
+- `buildPersons()` accepts enrichment map instead of level-only map
+- Sync Phase 3 extracts full employee metadata (was level-only)
+- Refactored `check_timesheet_status`, `get_billability_report`, and `get_team_timesheet` to use shared `fetchAllTimesheets`
+
+### Fixed
+
+- Removed redundant 8h daily limit pre-validation from `update_timesheet` (API enforces server-side)
+
 ## [0.4.0](https://github.com/cesconix/mcp-wethod/releases/tag/v0.4.0) — 2026-02-26
 
 ### Added
