@@ -36,6 +36,13 @@ export function addDays(dateStr: string, n: number): string {
 }
 
 /**
+ * Returns true if the YYYY-MM-DD string falls on a Monday.
+ */
+export function isMonday(dateStr: string): boolean {
+  return new Date(`${dateStr}T00:00:00`).getDay() === 1
+}
+
+/**
  * Returns true if the date is today or in the past.
  */
 export function isTodayOrPast(dateStr: string): boolean {
