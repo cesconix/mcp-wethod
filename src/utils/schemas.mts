@@ -1,12 +1,25 @@
 /**
- * Zod schemas for runtime validation of critical Wethod API responses.
+ * Zod schemas + inferred types for Wethod API response entities.
  *
- * Used to catch silent API changes that would otherwise produce malformed
- * tool output. Only the most commonly used response shapes are validated.
+ * Single home for the response shapes the tools consume. Two jobs:
+ *
+ *  1. Types: each schema exports an inferred type (`z.infer`) that tools import
+ *     instead of re-declaring the same shape inline.
+ *  2. Runtime validation: schemas are passed to `client.request({ schema })` at
+ *     the read boundary, so a silent Wethod API change surfaces as a loud tool
+ *     error rather than malformed output.
+ *
+ * Permissiveness (the Wethod API is in beta): zod strips unknown keys, so extra
+ * fields are ignored, never rejected. Core identity fields a tool relies on
+ * (ids, dates, and values used in computation) are required; purely descriptive
+ * fields are `.nullish()` so one sparse row never fails a whole list. If a real
+ * response trips validation, loosen the offending field here — that is the one
+ * place to change.
  */
 
 import { z } from "zod"
 
+/** Timesheet entry — `/api/timesheets`. */
 export const TimesheetSchema = z.object({
   id: z.number(),
   date: z.string(),
@@ -16,28 +29,63 @@ export const TimesheetSchema = z.object({
   project_id: z.number(),
   person_id: z.number(),
 })
+export type Timesheet = z.infer<typeof TimesheetSchema>
 
-export const TimesheetArraySchema = z.array(TimesheetSchema)
-
+/** Project — public projects endpoint `/api/projects`. */
 export const ProjectSchema = z.object({
   id: z.number(),
   name: z.string(),
   job_order: z.string().nullable(),
-  client_id: z.number(),
+  value: z.number().nullish(),
+  probability: z.number().nullish(),
+  date_start: z.string().nullish(),
+  duration: z.number().nullish(),
+  is_archived: z.boolean().nullish(),
+  client_id: z.number().nullish(),
   pm_id: z.number().nullable(),
-  is_archived: z.boolean(),
 })
+export type Project = z.infer<typeof ProjectSchema>
 
-export const ProjectArraySchema = z.array(ProjectSchema)
+/** Weekly project status — `/api/project-statuses`. Full shape (get/list). */
+export const ProjectStatusSchema = z.object({
+  id: z.number(),
+  project_id: z.number(),
+  date: z.string(),
+  days_left: z.number().nullable(),
+  progress: z.number().nullable(),
+  notes: z.string().nullable(),
+  project_status_risk_id: z.number().nullable(),
+  created_at: z.string().nullish(),
+  updated_at: z.string().nullish(),
+  deleted_at: z.string().nullish(),
+})
+export type ProjectStatus = z.infer<typeof ProjectStatusSchema>
 
+/** Project budget — `/api/budgets`. `total_days`/`is_baseline` drive compute. */
+export const BudgetSchema = z.object({
+  id: z.number(),
+  project_id: z.number(),
+  status: z.string().nullish(),
+  version: z.number().nullish(),
+  total_days: z.number(),
+  total_cost: z.number().nullish(),
+  total_price: z.number().nullish(),
+  final_net_price: z.number().nullish(),
+  total_external_cost: z.number().nullish(),
+  is_baseline: z.boolean(),
+  notes: z.string().nullish(),
+})
+export type Budget = z.infer<typeof BudgetSchema>
+
+/** Person — minimal identity subset. */
 export const PersonSchema = z.object({
   id: z.number(),
   name: z.string(),
   surname: z.string(),
 })
+export type Person = z.infer<typeof PersonSchema>
 
-export const PersonArraySchema = z.array(PersonSchema)
-
+/** People-allocation entry — `/api/people-allocations`. */
 export const AllocationSchema = z.object({
   id: z.number(),
   created_at: z.string(),
@@ -48,10 +96,4 @@ export const AllocationSchema = z.object({
   person_id: z.number(),
   deleted_at: z.string().nullable(),
 })
-
-export const AllocationArraySchema = z.array(AllocationSchema)
-
-export type TimesheetResponse = z.infer<typeof TimesheetSchema>
-export type ProjectResponse = z.infer<typeof ProjectSchema>
-export type PersonResponse = z.infer<typeof PersonSchema>
-export type AllocationResponse = z.infer<typeof AllocationSchema>
+export type Allocation = z.infer<typeof AllocationSchema>

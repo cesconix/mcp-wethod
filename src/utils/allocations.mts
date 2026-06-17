@@ -4,9 +4,9 @@
  */
 
 import type { WethodClient } from "./client.mjs"
-import type { AllocationResponse } from "./schemas.mjs"
+import type { Allocation } from "./schemas.mjs"
 
-export type Allocation = AllocationResponse
+export type { Allocation }
 
 /**
  * Fetches allocations from the Wethod API with date range filtering.

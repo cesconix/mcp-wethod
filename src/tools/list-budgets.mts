@@ -11,20 +11,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import { formatToolError, textResult } from "../utils/format.mjs"
-
-type Budget = {
-  id: number
-  project_id: number
-  status: string
-  version: number
-  total_days: number
-  total_cost: number
-  total_price: number
-  final_net_price: number
-  total_external_cost: number
-  is_baseline: boolean
-  notes: string | null
-}
+import { BudgetSchema } from "../utils/schemas.mjs"
 
 export function registerListBudgets(server: McpServer, client: WethodClient) {
   server.registerTool(
@@ -57,12 +44,13 @@ export function registerListBudgets(server: McpServer, client: WethodClient) {
     },
     async (params) => {
       try {
-        const budgets = await client.request<Budget[]>("GET", "/api/budgets", {
+        const budgets = await client.request("GET", "/api/budgets", {
           params: {
             limit: params.limit,
             offset: params.offset,
             project_id: params.project_id,
           },
+          schema: z.array(BudgetSchema),
         })
 
         if (budgets.length === 0) {

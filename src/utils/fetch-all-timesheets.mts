@@ -9,16 +9,7 @@
 
 import type { WethodClient } from "./client.mjs"
 import { fetchAllPages } from "./paginate.mjs"
-
-type Timesheet = {
-  id: number
-  date: string
-  hours: number
-  notes: string | null
-  mode: string
-  project_id: number
-  person_id: number
-}
+import type { Timesheet } from "./schemas.mjs"
 
 /**
  * Fetches all timesheet entries for a person from a given date onward.

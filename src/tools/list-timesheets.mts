@@ -11,16 +11,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import { formatDate, formatToolError, textResult } from "../utils/format.mjs"
-
-type Timesheet = {
-  id: number
-  date: string
-  hours: number
-  notes: string | null
-  mode: string
-  project_id: number
-  person_id: number
-}
+import { TimesheetSchema } from "../utils/schemas.mjs"
 
 export function registerListTimesheets(
   server: McpServer,
@@ -64,19 +55,16 @@ export function registerListTimesheets(
     },
     async (params) => {
       try {
-        const timesheets = await client.request<Timesheet[]>(
-          "GET",
-          "/api/timesheets",
-          {
-            params: {
-              person_id: params.person_id,
-              project_id: params.project_id,
-              date: params.date,
-              limit: params.limit,
-              offset: params.offset,
-            },
+        const timesheets = await client.request("GET", "/api/timesheets", {
+          params: {
+            person_id: params.person_id,
+            project_id: params.project_id,
+            date: params.date,
+            limit: params.limit,
+            offset: params.offset,
           },
-        )
+          schema: z.array(TimesheetSchema),
+        })
 
         if (timesheets.length === 0) {
           return textResult("No timesheets found.")

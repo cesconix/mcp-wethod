@@ -10,19 +10,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import { formatToolError, textResult } from "../utils/format.mjs"
-
-type Project = {
-  id: number
-  name: string
-  job_order: string | null
-  value: number
-  probability: number
-  date_start: string
-  duration: number
-  is_archived: boolean
-  client_id: number
-  pm_id: number | null
-}
+import { ProjectSchema } from "../utils/schemas.mjs"
 
 export function registerGetProject(server: McpServer, client: WethodClient) {
   server.registerTool(
@@ -38,9 +26,12 @@ export function registerGetProject(server: McpServer, client: WethodClient) {
     },
     async (params) => {
       try {
-        const project = await client.request<Project>(
+        const project = await client.request(
           "GET",
           `/api/projects/${params.id}`,
+          {
+            schema: ProjectSchema,
+          },
         )
 
         const lines = [
