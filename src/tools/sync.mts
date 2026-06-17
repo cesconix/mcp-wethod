@@ -27,6 +27,7 @@ import type {
   ProjectTypeEntry,
 } from "../utils/data-loader.mjs"
 import { formatToolError, textResult } from "../utils/format.mjs"
+import { fetchAllPages } from "../utils/paginate.mjs"
 
 // --- API response types ---
 
@@ -263,27 +264,6 @@ export async function fetchReport(
   } catch {
     return new Map()
   }
-}
-
-/** Paginated fetch from the public Wethod API. */
-async function fetchAllPages<T>(
-  client: WethodClient,
-  endpoint: string,
-  pageSize = 100,
-): Promise<T[]> {
-  const all: T[] = []
-  let offset = 0
-
-  while (true) {
-    const page = await client.request<T[]>("GET", endpoint, {
-      params: { limit: pageSize, offset },
-    })
-    all.push(...page)
-    if (page.length < pageSize) break
-    offset += pageSize
-  }
-
-  return all
 }
 
 const DELAY_MS = 2000

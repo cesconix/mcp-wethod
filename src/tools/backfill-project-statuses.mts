@@ -20,6 +20,7 @@ import { WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import { isMonday } from "../utils/date.mjs"
 import { fetchAllProjectTimesheets } from "../utils/fetch-all-timesheets.mjs"
 import { errorText, formatToolError, textResult } from "../utils/format.mjs"
+import { fetchAllPages } from "../utils/paginate.mjs"
 import {
   type BackfillPlanRow,
   mondaysInRange,
@@ -38,24 +39,16 @@ type ProjectStatus = {
   deleted_at?: string | null
 }
 
-/** Fetches all live project statuses for a project, paginating through pages. */
+/** Fetches all live (non-soft-deleted) project statuses for a project. */
 async function fetchExistingStatuses(
   client: WethodClient,
   projectId: number,
 ): Promise<ProjectStatus[]> {
-  const PAGE = 100
-  const all: ProjectStatus[] = []
-  let offset = 0
-  while (true) {
-    const page = await client.request<ProjectStatus[]>(
-      "GET",
-      "/api/project-statuses",
-      { params: { project_id: projectId, limit: PAGE, offset } },
-    )
-    all.push(...page)
-    if (page.length < PAGE) break
-    offset += PAGE
-  }
+  const all = await fetchAllPages<ProjectStatus>(
+    client,
+    "/api/project-statuses",
+    { project_id: projectId },
+  )
   return all.filter((s) => !s.deleted_at)
 }
 
