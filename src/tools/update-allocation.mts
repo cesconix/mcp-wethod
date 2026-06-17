@@ -11,7 +11,7 @@ import type { Allocation } from "../utils/allocations.mjs"
 import type { WethodClient } from "../utils/client.mjs"
 import { WORK_HOURS_PER_DAY, WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { errorText, formatToolError, textResult } from "../utils/format.mjs"
 
 export function registerUpdateAllocation(
   server: McpServer,
@@ -43,15 +43,9 @@ export function registerUpdateAllocation(
     async (params) => {
       try {
         if (!params.confirm) {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: "Operation not confirmed. Show a recap and get user confirmation first.",
-              },
-            ],
-          }
+          return errorText(
+            "Operation not confirmed. Show a recap and get user confirmation first.",
+          )
         }
 
         const allocation = await client.request<Allocation>(
@@ -71,9 +65,7 @@ export function registerUpdateAllocation(
           `Project: ${projectName}`,
         ].join("\n")
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

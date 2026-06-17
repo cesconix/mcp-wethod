@@ -11,7 +11,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { WORK_HOURS_PER_DAY, WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import { addDays } from "../utils/date.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { errorText, formatToolError, textResult } from "../utils/format.mjs"
 
 type Timesheet = {
   id: number
@@ -72,15 +72,9 @@ export function registerCreateTimesheet(
     async (params) => {
       try {
         if (!params.confirm) {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true.",
-              },
-            ],
-          }
+          return errorText(
+            "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true.",
+          )
         }
 
         // Compute the actual calendar date from the Monday + day offset
@@ -104,15 +98,9 @@ export function registerCreateTimesheet(
         const totalHours = existingHours + params.hours
 
         if (totalHours > WORK_HOURS_PER_DAY) {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: `Cannot create: adding ${params.hours}h would exceed the daily limit.\nExisting hours for ${actualDate}: ${existingHours}h\nTotal would be: ${totalHours}h (limit: ${WORK_HOURS_PER_DAY}h)`,
-              },
-            ],
-          }
+          return errorText(
+            `Cannot create: adding ${params.hours}h would exceed the daily limit.\nExisting hours for ${actualDate}: ${existingHours}h\nTotal would be: ${totalHours}h (limit: ${WORK_HOURS_PER_DAY}h)`,
+          )
         }
 
         const timesheet = await client.request<Timesheet>(
@@ -149,9 +137,7 @@ export function registerCreateTimesheet(
           statusLine,
         ].join("\n")
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

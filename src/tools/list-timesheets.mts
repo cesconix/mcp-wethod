@@ -10,7 +10,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatDate, formatToolError } from "../utils/format.mjs"
+import { formatDate, formatToolError, textResult } from "../utils/format.mjs"
 
 type Timesheet = {
   id: number
@@ -79,9 +79,7 @@ export function registerListTimesheets(
         )
 
         if (timesheets.length === 0) {
-          return {
-            content: [{ type: "text" as const, text: "No timesheets found." }],
-          }
+          return textResult("No timesheets found.")
         }
 
         const lines = timesheets.map((ts) => {
@@ -92,9 +90,7 @@ export function registerListTimesheets(
 
         const text = `Found ${timesheets.length} timesheet(s):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

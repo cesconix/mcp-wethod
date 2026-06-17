@@ -10,7 +10,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
 
 type Project = {
   id: number
@@ -68,9 +68,7 @@ export function registerListProjects(server: McpServer, client: WethodClient) {
         )
 
         if (projects.length === 0) {
-          return {
-            content: [{ type: "text" as const, text: "No projects found." }],
-          }
+          return textResult("No projects found.")
         }
 
         const lines = projects.map((p) => {
@@ -80,9 +78,7 @@ export function registerListProjects(server: McpServer, client: WethodClient) {
 
         const text = `Found ${projects.length} project(s):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

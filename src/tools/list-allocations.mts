@@ -12,7 +12,7 @@ import { fetchAllocations } from "../utils/allocations.mjs"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
-import { formatDate, formatToolError } from "../utils/format.mjs"
+import { formatDate, formatToolError, textResult } from "../utils/format.mjs"
 
 export function registerListAllocations(
   server: McpServer,
@@ -73,9 +73,7 @@ export function registerListAllocations(
         })
 
         if (allocations.length === 0) {
-          return {
-            content: [{ type: "text" as const, text: "No allocations found." }],
-          }
+          return textResult("No allocations found.")
         }
 
         const personName = data.personName(params.person_id)
@@ -88,9 +86,7 @@ export function registerListAllocations(
 
         const text = `Allocations for ${personName} (${allocations.length} entries):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

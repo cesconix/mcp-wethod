@@ -12,7 +12,7 @@ import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
 import { fetchAllTimesheets } from "../utils/fetch-all-timesheets.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
 
 export function registerGetBillabilityReport(
   server: McpServer,
@@ -143,9 +143,7 @@ export function registerGetBillabilityReport(
 
         const text = `BILLABILITY REPORT (${params.date_from} to ${params.date_to})\n\n${blocks.join("\n\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

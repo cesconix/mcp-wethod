@@ -10,7 +10,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
 
 type ProductionPlan = {
   id: number
@@ -74,11 +74,7 @@ export function registerListProductionPlans(
         const active = plans.filter((p) => p.deleted_at === null)
 
         if (active.length === 0) {
-          return {
-            content: [
-              { type: "text" as const, text: "No production plans found." },
-            ],
-          }
+          return textResult("No production plans found.")
         }
 
         const lines = active.map((p) => {
@@ -87,9 +83,7 @@ export function registerListProductionPlans(
 
         const text = `Found ${active.length} production plan(s):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

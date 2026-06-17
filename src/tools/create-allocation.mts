@@ -17,7 +17,7 @@ import type { WethodClient } from "../utils/client.mjs"
 import { WORK_HOURS_PER_DAY, WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
 import { getWeekdaysInRange } from "../utils/date.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { errorText, formatToolError } from "../utils/format.mjs"
 
 export function registerCreateAllocation(
   server: McpServer,
@@ -68,15 +68,9 @@ export function registerCreateAllocation(
     async (params) => {
       try {
         if (!params.confirm) {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: "Operation not confirmed. Show a recap and get user confirmation first.",
-              },
-            ],
-          }
+          return errorText(
+            "Operation not confirmed. Show a recap and get user confirmation first.",
+          )
         }
 
         // Determine target dates
@@ -86,27 +80,13 @@ export function registerCreateAllocation(
         } else if (params.date_from && params.date_to) {
           dates = getWeekdaysInRange(params.date_from, params.date_to)
         } else {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: "Provide either 'date' for a single day, or both 'date_from' and 'date_to' for a range.",
-              },
-            ],
-          }
+          return errorText(
+            "Provide either 'date' for a single day, or both 'date_from' and 'date_to' for a range.",
+          )
         }
 
         if (dates.length === 0) {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: "No weekdays found in the specified range.",
-              },
-            ],
-          }
+          return errorText("No weekdays found in the specified range.")
         }
 
         const projectName = data.projectName(params.project_id)
