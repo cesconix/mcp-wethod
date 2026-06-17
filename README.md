@@ -37,7 +37,7 @@ When all three are set, environment variables override `config.json`.
 | `WETHOD_PERSON_ID` | Your person ID in Wethod |
 
 
-## Tools (28)
+## Tools (33)
 
 ### Configuration
 
@@ -89,6 +89,16 @@ When all three are set, environment variables override `config.json`.
 | `list_budgets` | List project budgets with status, days, costs, and prices | `GET /api/budgets` |
 | `list_productions` | List actual production values by project and date | `GET /api/productions` |
 | `list_production_plans` | List planned production values for variance tracking | `GET /api/production-plans` |
+
+### Project Statuses
+
+| Tool | Description | Endpoint |
+|---|---|---|
+| `list_project_statuses` | List weekly project statuses, filterable by project | `GET /api/project-statuses` |
+| `get_project_status` | Get full details of a single project status by ID | `GET /api/project-statuses/:id` |
+| `create_project_status` | Create a weekly status (remaining-days mode); `days_left` explicit or auto-computed from budget − timesheet; requires `confirm` | `GET /api/budgets` `GET /api/timesheets` `POST /api/project-statuses` |
+| `delete_project_status` | Delete a project status by ID (corrections are done as delete + create) | `DELETE /api/project-statuses/:id` |
+| `backfill_project_statuses` | Backfill weekly statuses across a Monday range; dry-run by default, skip or overwrite existing | `GET /api/budgets` `GET /api/timesheets` `GET`/`POST`/`DELETE /api/project-statuses` |
 
 ### Clients & Capacities
 
