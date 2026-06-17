@@ -34,14 +34,18 @@ import { McpServer as McpServerImpl } from "@modelcontextprotocol/sdk/server/mcp
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { registerTimesheetReminderPrompt } from "./prompts/timesheet-reminder.mjs"
 import { registerWeeklySummaryPrompt } from "./prompts/weekly-summary.mjs"
+import { registerBackfillProjectStatuses } from "./tools/backfill-project-statuses.mjs"
 import { registerCheckTimesheetStatus } from "./tools/check-timesheet-status.mjs"
 import { registerCreateAllocation } from "./tools/create-allocation.mjs"
+import { registerCreateProjectStatus } from "./tools/create-project-status.mjs"
 import { registerCreateTimesheet } from "./tools/create-timesheet.mjs"
 import { registerDeleteAllocation } from "./tools/delete-allocation.mjs"
+import { registerDeleteProjectStatus } from "./tools/delete-project-status.mjs"
 import { registerDeleteTimesheet } from "./tools/delete-timesheet.mjs"
 import { registerGetAvailability } from "./tools/get-availability.mjs"
 import { registerGetBillabilityReport } from "./tools/get-billability-report.mjs"
 import { registerGetProject } from "./tools/get-project.mjs"
+import { registerGetProjectStatus } from "./tools/get-project-status.mjs"
 import { registerGetTeamTimesheet } from "./tools/get-team-timesheet.mjs"
 import { registerGetWeeklyPlan } from "./tools/get-weekly-plan.mjs"
 import { registerListAllocations } from "./tools/list-allocations.mjs"
@@ -50,6 +54,7 @@ import { registerListCapacities } from "./tools/list-capacities.mjs"
 import { registerListClients } from "./tools/list-clients.mjs"
 import { registerListProductionPlans } from "./tools/list-production-plans.mjs"
 import { registerListProductions } from "./tools/list-productions.mjs"
+import { registerListProjectStatuses } from "./tools/list-project-statuses.mjs"
 import { registerListProjects } from "./tools/list-projects.mjs"
 import { registerListTimesheetLogs } from "./tools/list-timesheet-logs.mjs"
 import { registerListTimesheets } from "./tools/list-timesheets.mjs"
@@ -115,6 +120,13 @@ export function registerAllTools(
   // Projects
   registerListProjects(server, client)
   registerGetProject(server, client)
+
+  // Project statuses
+  registerListProjectStatuses(server, client)
+  registerGetProjectStatus(server, client)
+  registerCreateProjectStatus(server, client)
+  registerDeleteProjectStatus(server, client)
+  registerBackfillProjectStatuses(server, client)
 
   // Budgets & financials
   registerListBudgets(server, client)
