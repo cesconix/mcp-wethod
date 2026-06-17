@@ -27,17 +27,7 @@ import {
   planBackfill,
   toApiDaysLeft,
 } from "../utils/project-status-compute.mjs"
-
-type Budget = {
-  total_days: number
-  is_baseline: boolean
-}
-
-type ProjectStatus = {
-  id: number
-  date: string
-  deleted_at?: string | null
-}
+import type { Budget, ProjectStatus } from "../utils/schemas.mjs"
 
 /** Fetches all live (non-soft-deleted) project statuses for a project. */
 async function fetchExistingStatuses(

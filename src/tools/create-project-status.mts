@@ -25,23 +25,7 @@ import {
   sumHoursOnOrBefore,
   toApiDaysLeft,
 } from "../utils/project-status-compute.mjs"
-
-type Budget = {
-  id: number
-  project_id: number
-  total_days: number
-  is_baseline: boolean
-}
-
-type ProjectStatus = {
-  id: number
-  project_id: number
-  date: string
-  days_left: number | null
-  progress: number | null
-  notes: string | null
-  project_status_risk_id: number | null
-}
+import type { Budget, ProjectStatus } from "../utils/schemas.mjs"
 
 type Resolved = {
   daysLeft: number

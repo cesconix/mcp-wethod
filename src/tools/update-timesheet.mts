@@ -11,16 +11,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { WORK_HOURS_PER_DAY, WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import { errorText, formatToolError, textResult } from "../utils/format.mjs"
-
-type Timesheet = {
-  id: number
-  date: string
-  hours: number
-  notes: string | null
-  mode: string
-  project_id: number
-  person_id: number
-}
+import type { Timesheet } from "../utils/schemas.mjs"
 
 export function registerUpdateTimesheet(
   server: McpServer,

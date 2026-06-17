@@ -9,19 +9,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import { formatToolError, textResult } from "../utils/format.mjs"
-
-type ProjectStatus = {
-  id: number
-  project_id: number
-  date: string
-  days_left: number | null
-  progress: number | null
-  notes: string | null
-  project_status_risk_id: number | null
-  created_at: string
-  updated_at: string
-  deleted_at?: string | null
-}
+import { ProjectStatusSchema } from "../utils/schemas.mjs"
 
 export function registerGetProjectStatus(
   server: McpServer,
@@ -39,9 +27,10 @@ export function registerGetProjectStatus(
     },
     async (params) => {
       try {
-        const s = await client.request<ProjectStatus>(
+        const s = await client.request(
           "GET",
           `/api/project-statuses/${params.id}`,
+          { schema: ProjectStatusSchema },
         )
 
         const text = [
