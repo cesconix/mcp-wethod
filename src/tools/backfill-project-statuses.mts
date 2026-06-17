@@ -19,7 +19,7 @@ import type { WethodClient } from "../utils/client.mjs"
 import { WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import { isMonday } from "../utils/date.mjs"
 import { fetchAllProjectTimesheets } from "../utils/fetch-all-timesheets.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { errorText, formatToolError, textResult } from "../utils/format.mjs"
 import {
   type BackfillPlanRow,
   mondaysInRange,
@@ -102,13 +102,13 @@ export function registerBackfillProjectStatuses(
       try {
         // --- Validate range ---
         if (!isMonday(params.date_from)) {
-          return errText(`date_from ${params.date_from} is not a Monday.`)
+          return errorText(`date_from ${params.date_from} is not a Monday.`)
         }
         if (!isMonday(params.date_to)) {
-          return errText(`date_to ${params.date_to} is not a Monday.`)
+          return errorText(`date_to ${params.date_to} is not a Monday.`)
         }
         if (params.date_from > params.date_to) {
-          return errText(
+          return errorText(
             `date_from ${params.date_from} is after date_to ${params.date_to}.`,
           )
         }
@@ -119,7 +119,7 @@ export function registerBackfillProjectStatuses(
         })
         const baseline = budgets.find((b) => b.is_baseline) ?? budgets[0]
         if (!baseline) {
-          return errText(
+          return errorText(
             `No budget found for project ${params.project_id}; cannot backfill.`,
           )
         }
@@ -158,20 +158,9 @@ export function registerBackfillProjectStatuses(
 
         // --- Preview / recap path ---
         if (!willWrite) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: renderPlan(
-                  params,
-                  baseline.total_days,
-                  plan,
-                  counts,
-                  header,
-                ),
-              },
-            ],
-          }
+          return textResult(
+            renderPlan(params, baseline.total_days, plan, counts, header),
+          )
         }
 
         // --- Execute path (sequential; gentle on the API) ---
@@ -225,21 +214,12 @@ export function registerBackfillProjectStatuses(
             ...results.errors.map((e) => `  - ${e}`),
           )
         }
-        return {
-          content: [{ type: "text" as const, text: summary.join("\n") }],
-        }
+        return textResult(summary.join("\n"))
       } catch (error) {
         return formatToolError(error)
       }
     },
   )
-}
-
-function errText(msg: string) {
-  return {
-    isError: true as const,
-    content: [{ type: "text" as const, text: msg }],
-  }
 }
 
 function renderPlan(

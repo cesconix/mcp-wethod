@@ -15,7 +15,7 @@ import {
 } from "../utils/constants.mjs"
 import { addDays, getCurrentWeekMonday, isTodayOrPast } from "../utils/date.mjs"
 import { fetchAllTimesheets } from "../utils/fetch-all-timesheets.mjs"
-import { formatHours, formatToolError } from "../utils/format.mjs"
+import { formatHours, formatToolError, textResult } from "../utils/format.mjs"
 
 const WORK_DAYS = ["mon", "tue", "wed", "thu", "fri"] as const
 
@@ -118,9 +118,7 @@ export function registerCheckTimesheetStatus(
           lines.push("", "Incomplete days:", ...incompleteDays)
         }
 
-        return {
-          content: [{ type: "text" as const, text: lines.join("\n") }],
-        }
+        return textResult(lines.join("\n"))
       } catch (error) {
         return formatToolError(error)
       }

@@ -8,7 +8,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
 
 type ProjectStatus = {
   id: number
@@ -56,9 +56,7 @@ export function registerGetProjectStatus(
           `Updated: ${s.updated_at}`,
         ].join("\n")
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

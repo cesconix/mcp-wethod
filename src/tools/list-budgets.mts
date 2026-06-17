@@ -10,7 +10,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
 
 type Budget = {
   id: number
@@ -66,9 +66,7 @@ export function registerListBudgets(server: McpServer, client: WethodClient) {
         })
 
         if (budgets.length === 0) {
-          return {
-            content: [{ type: "text" as const, text: "No budgets found." }],
-          }
+          return textResult("No budgets found.")
         }
 
         const lines = budgets.map((b) => {
@@ -77,9 +75,7 @@ export function registerListBudgets(server: McpServer, client: WethodClient) {
 
         const text = `Found ${budgets.length} budget(s):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

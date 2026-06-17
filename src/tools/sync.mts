@@ -26,7 +26,7 @@ import type {
   ProjectEntry,
   ProjectTypeEntry,
 } from "../utils/data-loader.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
 
 // --- API response types ---
 
@@ -618,9 +618,7 @@ export function registerSync(
 
         data.invalidate()
 
-        return {
-          content: [{ type: "text" as const, text: result.log.join("\n") }],
-        }
+        return textResult(result.log.join("\n"))
       } catch (error) {
         return formatToolError(error)
       }

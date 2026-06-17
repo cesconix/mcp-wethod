@@ -18,7 +18,7 @@ import { WethodClient } from "../utils/client.mjs"
 import { CONFIG_DIR, clearData, writeConfig } from "../utils/config.mjs"
 import { WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import { DataLoader } from "../utils/data-loader.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { errorText, formatToolError, textResult } from "../utils/format.mjs"
 import { performSync } from "./sync.mjs"
 
 const PENDING_FILE = join(CONFIG_DIR, ".setup-pending.json")
@@ -66,15 +66,9 @@ export function registerSetup(server: McpServer) {
       try {
         if (params.step === "credentials") {
           if (!params.company || !params.api_token || !params.session_id) {
-            return {
-              isError: true as const,
-              content: [
-                {
-                  type: "text" as const,
-                  text: "Missing required fields. Provide company, api_token, and session_id.",
-                },
-              ],
-            }
+            return errorText(
+              "Missing required fields. Provide company, api_token, and session_id.",
+            )
           }
 
           // Clear old data before re-sync
@@ -111,32 +105,20 @@ export function registerSetup(server: McpServer) {
             "Tell me your name and I will look you up, then call setup again with step='identify' and your person_id.",
           ].join("\n")
 
-          return { content: [{ type: "text" as const, text }] }
+          return textResult(text)
         }
 
         if (params.step === "identify") {
           if (!params.person_id) {
-            return {
-              isError: true as const,
-              content: [
-                {
-                  type: "text" as const,
-                  text: "Missing person_id. Tell me your name first so I can look it up.",
-                },
-              ],
-            }
+            return errorText(
+              "Missing person_id. Tell me your name first so I can look it up.",
+            )
           }
 
           if (!existsSync(PENDING_FILE)) {
-            return {
-              isError: true as const,
-              content: [
-                {
-                  type: "text" as const,
-                  text: 'No pending setup found. Run setup with step="credentials" first.',
-                },
-              ],
-            }
+            return errorText(
+              'No pending setup found. Run setup with step="credentials" first.',
+            )
           }
 
           const pending = JSON.parse(readFileSync(PENDING_FILE, "utf-8"))
@@ -146,15 +128,9 @@ export function registerSetup(server: McpServer) {
           const person = data.getPersons().get(params.person_id)
 
           if (!person) {
-            return {
-              isError: true as const,
-              content: [
-                {
-                  type: "text" as const,
-                  text: `Person ID ${params.person_id} not found in synced data. Check the ID and try again.`,
-                },
-              ],
-            }
+            return errorText(
+              `Person ID ${params.person_id} not found in synced data. Check the ID and try again.`,
+            )
           }
 
           // Save final config
@@ -172,18 +148,10 @@ export function registerSetup(server: McpServer) {
             "Please reconnect the MCP server to apply the new configuration.",
           ].join("\n")
 
-          return { content: [{ type: "text" as const, text }] }
+          return textResult(text)
         }
 
-        return {
-          isError: true as const,
-          content: [
-            {
-              type: "text" as const,
-              text: 'Invalid step. Use "credentials" or "identify".',
-            },
-          ],
-        }
+        return errorText('Invalid step. Use "credentials" or "identify".')
       } catch (error) {
         return formatToolError(error)
       }
