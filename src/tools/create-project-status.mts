@@ -18,30 +18,14 @@ import type { WethodClient } from "../utils/client.mjs"
 import { WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import { addDays, isMonday } from "../utils/date.mjs"
 import { fetchAllProjectTimesheets } from "../utils/fetch-all-timesheets.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { errorText, formatToolError, textResult } from "../utils/format.mjs"
 import {
   computeDaysLeft,
   hoursToDays,
   sumHoursOnOrBefore,
   toApiDaysLeft,
 } from "../utils/project-status-compute.mjs"
-
-type Budget = {
-  id: number
-  project_id: number
-  total_days: number
-  is_baseline: boolean
-}
-
-type ProjectStatus = {
-  id: number
-  project_id: number
-  date: string
-  days_left: number | null
-  progress: number | null
-  notes: string | null
-  project_status_risk_id: number | null
-}
+import type { Budget, ProjectStatus } from "../utils/schemas.mjs"
 
 type Resolved = {
   daysLeft: number
@@ -92,15 +76,9 @@ export function registerCreateProjectStatus(
     async (params) => {
       try {
         if (!isMonday(params.date)) {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: `Date ${params.date} is not a Monday. Project statuses are weekly and must start on a Monday.`,
-              },
-            ],
-          }
+          return errorText(
+            `Date ${params.date} is not a Monday. Project statuses are weekly and must start on a Monday.`,
+          )
         }
 
         // Resolve days_left: explicit value, or auto-compute from budget + timesheet.
@@ -108,12 +86,7 @@ export function registerCreateProjectStatus(
 
         // Recap-before-write: surface the resolved value, do not write yet.
         if (!params.confirm) {
-          return {
-            isError: true as const,
-            content: [
-              { type: "text" as const, text: recapText(params, resolved) },
-            ],
-          }
+          return errorText(recapText(params, resolved))
         }
 
         const created = await client.request<ProjectStatus>(
@@ -142,7 +115,7 @@ export function registerCreateProjectStatus(
           `Notes: ${created.notes ?? "N/A"}`,
         ].join("\n")
 
-        return { content: [{ type: "text" as const, text }] }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

@@ -9,20 +9,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
-
-type ProjectStatus = {
-  id: number
-  project_id: number
-  date: string
-  days_left: number | null
-  progress: number | null
-  notes: string | null
-  project_status_risk_id: number | null
-  created_at: string
-  updated_at: string
-  deleted_at?: string | null
-}
+import { formatToolError, textResult } from "../utils/format.mjs"
+import { ProjectStatusSchema, paginationSchema } from "../utils/schemas.mjs"
 
 export function registerListProjectStatuses(
   server: McpServer,
@@ -35,19 +23,7 @@ export function registerListProjectStatuses(
       description:
         "List project statuses from Wethod. Filter by project_id and paginate. Each status reports days_left or progress for a given Monday.",
       inputSchema: {
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(100)
-          .default(100)
-          .describe("Maximum results to return (1-100, default: 100)"),
-        offset: z
-          .number()
-          .int()
-          .min(0)
-          .default(0)
-          .describe("Number of results to skip for pagination"),
+        ...paginationSchema,
         project_id: z
           .number()
           .int()
@@ -58,24 +34,17 @@ export function registerListProjectStatuses(
     },
     async (params) => {
       try {
-        const statuses = await client.request<ProjectStatus[]>(
-          "GET",
-          "/api/project-statuses",
-          {
-            params: {
-              limit: params.limit,
-              offset: params.offset,
-              project_id: params.project_id,
-            },
+        const statuses = await client.request("GET", "/api/project-statuses", {
+          params: {
+            limit: params.limit,
+            offset: params.offset,
+            project_id: params.project_id,
           },
-        )
+          schema: z.array(ProjectStatusSchema),
+        })
 
         if (statuses.length === 0) {
-          return {
-            content: [
-              { type: "text" as const, text: "No project statuses found." },
-            ],
-          }
+          return textResult("No project statuses found.")
         }
 
         const lines = statuses.map((s) => {
@@ -93,9 +62,7 @@ export function registerListProjectStatuses(
 
         const text = `Found ${statuses.length} project status(es):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

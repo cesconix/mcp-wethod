@@ -7,6 +7,51 @@
  */
 
 /**
+ * Wraps text in the MCP success envelope every tool returns.
+ *
+ * Every tool produces a single plain-text content block; this is the one
+ * place that shape is spelled out, so call sites stay free of the repeated
+ * `{ content: [{ type: "text" as const, text }] }` boilerplate.
+ */
+export function textResult(text: string) {
+  return {
+    content: [{ type: "text" as const, text }],
+  }
+}
+
+/**
+ * Wraps text in the MCP error envelope (`isError: true`).
+ *
+ * Use for in-handler validation failures (e.g. an unconfirmed write) where a
+ * thrown error is not appropriate; for caught exceptions use `formatToolError`.
+ */
+export function errorText(text: string) {
+  return {
+    isError: true as const,
+    content: [{ type: "text" as const, text }],
+  }
+}
+
+/**
+ * Confirm-gate for write/delete tools.
+ *
+ * Returns `null` when the caller confirmed (proceed), or the canonical
+ * not-confirmed error envelope otherwise. Usage:
+ *
+ * ```ts
+ * const gate = requireConfirm(params.confirm)
+ * if (gate) return gate
+ * ```
+ */
+export function requireConfirm(confirm: boolean) {
+  return confirm
+    ? null
+    : errorText(
+        "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true.",
+      )
+}
+
+/**
  * Builds an MCP-compliant error response from any caught error.
  *
  * Returns a structured object that the MCP SDK accepts as a tool error,
@@ -18,10 +63,7 @@ export function formatToolError(error: unknown) {
       ? `Error: ${error.message}`
       : `Error: ${String(error)}`
 
-  return {
-    isError: true as const,
-    content: [{ type: "text" as const, text }],
-  }
+  return errorText(text)
 }
 
 /**

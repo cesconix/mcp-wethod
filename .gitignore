@@ -2,3 +2,11 @@ node_modules/
 dist/
 docs/
 *.log
+
+# OS / editor cruft
+.DS_Store
+
+# Local scratch — investigation notes, exported dashboards, API drafts
+*.html
+INVESTIGATION-*.md
+wethod-people-allocations-api.md

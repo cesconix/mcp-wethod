@@ -8,8 +8,8 @@ import {
   buildPersons,
   buildProjects,
   buildProjectTypes,
-  type PersonEnrichment,
-} from "../../src/tools/sync.mjs"
+} from "../../src/sync/builders.mjs"
+import type { PersonEnrichment } from "../../src/sync/types.mjs"
 import { DataLoader } from "../../src/utils/data-loader.mjs"
 
 describe("sync tool", () => {

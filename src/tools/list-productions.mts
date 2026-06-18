@@ -10,7 +10,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
+import { paginationSchema } from "../utils/schemas.mjs"
 
 type Production = {
   id: number
@@ -31,19 +32,7 @@ export function registerListProductions(
       description:
         "List production entries from Wethod. Shows actual production values by project and date. Useful for tracking revenue recognition.",
       inputSchema: {
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(100)
-          .default(100)
-          .describe("Maximum results to return (1-100, default: 100)"),
-        offset: z
-          .number()
-          .int()
-          .min(0)
-          .default(0)
-          .describe("Number of results to skip for pagination"),
+        ...paginationSchema,
         project_id: z
           .number()
           .int()
@@ -74,9 +63,7 @@ export function registerListProductions(
         const active = productions.filter((p) => p.deleted_at === null)
 
         if (active.length === 0) {
-          return {
-            content: [{ type: "text" as const, text: "No productions found." }],
-          }
+          return textResult("No productions found.")
         }
 
         const lines = active.map((p) => {
@@ -85,9 +72,7 @@ export function registerListProductions(
 
         const text = `Found ${active.length} production(s):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }
