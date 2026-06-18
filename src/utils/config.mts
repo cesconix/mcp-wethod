@@ -83,6 +83,7 @@ export function clearData(): void {
     "projects.json",
     "clients.json",
     "project-types.json",
+    "levels.json",
     ".last-sync",
     ".setup-pending.json",
   ]

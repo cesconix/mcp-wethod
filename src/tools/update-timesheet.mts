@@ -10,17 +10,13 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { WORK_HOURS_PER_DAY, WRITE_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
-
-type Timesheet = {
-  id: number
-  date: string
-  hours: number
-  notes: string | null
-  mode: string
-  project_id: number
-  person_id: number
-}
+import {
+  errorText,
+  formatToolError,
+  requireConfirm,
+  textResult,
+} from "../utils/format.mjs"
+import type { Timesheet } from "../utils/schemas.mjs"
 
 export function registerUpdateTimesheet(
   server: McpServer,
@@ -51,17 +47,8 @@ export function registerUpdateTimesheet(
     },
     async (params) => {
       try {
-        if (!params.confirm) {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true.",
-              },
-            ],
-          }
-        }
+        const gate = requireConfirm(params.confirm)
+        if (gate) return gate
 
         // Build body with only the fields that were provided
         const body: Record<string, unknown> = {}
@@ -69,15 +56,9 @@ export function registerUpdateTimesheet(
         if (params.notes !== undefined) body.notes = params.notes
 
         if (Object.keys(body).length === 0) {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: "Nothing to update. Provide at least one of: hours, notes.",
-              },
-            ],
-          }
+          return errorText(
+            "Nothing to update. Provide at least one of: hours, notes.",
+          )
         }
 
         const timesheet = await client.request<Timesheet>(
@@ -96,9 +77,7 @@ export function registerUpdateTimesheet(
           `Notes: ${timesheet.notes ?? "N/A"}`,
         ].join("\n")
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

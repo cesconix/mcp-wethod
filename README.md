@@ -193,6 +193,70 @@ pnpm run build        # Build (tsc)
 
 Requires Node.js >= 22.
 
+### Writing a tool
+
+Every tool is one file in `src/tools/` exporting a `register<Name>` function and
+following the same shape. Canonical examples: `list-budgets.mts` (read) and
+`delete-timesheet.mts` (delete).
+
+Conventions:
+
+- **File & name** — kebab-case file `foo-bar.mts` exports `registerFooBar`; the
+  MCP tool name is snake_case `foo_bar`; the title is Title Case.
+- **Second arg** — `client: WethodClient` for API tools, `data: DataLoader` for
+  local-data lookups, or both when a tool resolves names.
+- **Input schema** — inline zod fields. Spread `paginationSchema` (from
+  `utils/schemas.mjs`) for `limit`/`offset` instead of re-declaring them.
+- **Annotations** — `READONLY_ANNOTATIONS` / `WRITE_ANNOTATIONS` /
+  `DELETE_ANNOTATIONS` from `utils/constants.mjs`.
+- **Domain types** — import from `utils/schemas.mjs`; never re-declare a response
+  shape inline. For read tools, pass the schema to `client.request({ schema })`
+  so a changed API surfaces as a loud error.
+- **Output** — return `textResult(text)` for success and `errorText(text)` for an
+  in-handler validation failure; wrap the body in `try/catch` returning
+  `formatToolError(error)`. Gate writes with `requireConfirm(params.confirm)`.
+
+```ts
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { z } from "zod"
+import type { WethodClient } from "../utils/client.mjs"
+import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
+import { BudgetSchema, paginationSchema } from "../utils/schemas.mjs"
+
+export function registerListExample(server: McpServer, client: WethodClient) {
+  server.registerTool(
+    "list_example",
+    {
+      title: "List Example",
+      description: "Plain-English description shown to the LLM; say what it returns.",
+      inputSchema: {
+        ...paginationSchema,
+        project_id: z.number().int().optional().describe("Filter by project ID"),
+        // write/delete tools also add: confirm: z.boolean().describe("Must be true ...")
+      },
+      annotations: READONLY_ANNOTATIONS,
+    },
+    async (params) => {
+      try {
+        // write/delete tools first: const gate = requireConfirm(params.confirm); if (gate) return gate
+        const rows = await client.request("GET", "/api/example", {
+          params: { limit: params.limit, offset: params.offset, project_id: params.project_id },
+          schema: z.array(BudgetSchema),
+        })
+        if (rows.length === 0) return textResult("No examples found.")
+        const lines = rows.map((r) => `id: ${r.id} | Project ${r.project_id}`)
+        return textResult(`Found ${rows.length} example(s):\n\n${lines.join("\n")}`)
+      } catch (error) {
+        return formatToolError(error)
+      }
+    },
+  )
+}
+```
+
+Exception: pure in-memory lookup tools (no I/O) intentionally omit the
+`try/catch` — see `lookup-person.mts`.
 
 ## License
 

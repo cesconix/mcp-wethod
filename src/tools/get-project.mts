@@ -9,20 +9,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
-
-type Project = {
-  id: number
-  name: string
-  job_order: string | null
-  value: number
-  probability: number
-  date_start: string
-  duration: number
-  is_archived: boolean
-  client_id: number
-  pm_id: number | null
-}
+import { formatToolError, textResult } from "../utils/format.mjs"
+import { ProjectSchema } from "../utils/schemas.mjs"
 
 export function registerGetProject(server: McpServer, client: WethodClient) {
   server.registerTool(
@@ -38,9 +26,12 @@ export function registerGetProject(server: McpServer, client: WethodClient) {
     },
     async (params) => {
       try {
-        const project = await client.request<Project>(
+        const project = await client.request(
           "GET",
           `/api/projects/${params.id}`,
+          {
+            schema: ProjectSchema,
+          },
         )
 
         const lines = [
@@ -58,9 +49,7 @@ export function registerGetProject(server: McpServer, client: WethodClient) {
 
         const text = lines.join("\n")
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

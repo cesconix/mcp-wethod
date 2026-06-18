@@ -6,10 +6,10 @@
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
-import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
+import { paginationSchema } from "../utils/schemas.mjs"
 
 type Client = {
   id: number
@@ -30,19 +30,7 @@ export function registerListClients(server: McpServer, client: WethodClient) {
       description:
         "List clients from Wethod. Returns client company names, contacts, and details.",
       inputSchema: {
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(100)
-          .default(100)
-          .describe("Maximum results to return (1-100, default: 100)"),
-        offset: z
-          .number()
-          .int()
-          .min(0)
-          .default(0)
-          .describe("Number of results to skip for pagination"),
+        ...paginationSchema,
       },
       annotations: READONLY_ANNOTATIONS,
     },
@@ -56,9 +44,7 @@ export function registerListClients(server: McpServer, client: WethodClient) {
         })
 
         if (clients.length === 0) {
-          return {
-            content: [{ type: "text" as const, text: "No clients found." }],
-          }
+          return textResult("No clients found.")
         }
 
         const lines = clients.map((c) => {
@@ -69,9 +55,7 @@ export function registerListClients(server: McpServer, client: WethodClient) {
 
         const text = `Found ${clients.length} client(s):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

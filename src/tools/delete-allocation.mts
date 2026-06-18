@@ -13,7 +13,12 @@ import { z } from "zod"
 import { fetchAllocations } from "../utils/allocations.mjs"
 import type { WethodClient } from "../utils/client.mjs"
 import { DELETE_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import {
+  errorText,
+  formatToolError,
+  requireConfirm,
+  textResult,
+} from "../utils/format.mjs"
 
 export function registerDeleteAllocation(
   server: McpServer,
@@ -61,43 +66,21 @@ export function registerDeleteAllocation(
     },
     async (params) => {
       try {
-        if (!params.confirm) {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: "Operation not confirmed. Show a recap and get user confirmation first.",
-              },
-            ],
-          }
-        }
+        const gate = requireConfirm(params.confirm)
+        if (gate) return gate
 
         // Single delete mode
         if (params.id !== undefined) {
           await client.request("DELETE", `/api/people-allocations/${params.id}`)
 
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Allocation ${params.id} deleted successfully.`,
-              },
-            ],
-          }
+          return textResult(`Allocation ${params.id} deleted successfully.`)
         }
 
         // Range delete mode
         if (!params.date_from || !params.date_to) {
-          return {
-            isError: true as const,
-            content: [
-              {
-                type: "text" as const,
-                text: "Provide either 'id' for a single deletion, or both 'date_from' and 'date_to' for a range.",
-              },
-            ],
-          }
+          return errorText(
+            "Provide either 'id' for a single deletion, or both 'date_from' and 'date_to' for a range.",
+          )
         }
 
         // Fetch allocations to delete
@@ -109,14 +92,7 @@ export function registerDeleteAllocation(
         })
 
         if (allocations.length === 0) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: "No allocations found in the specified range.",
-              },
-            ],
-          }
+          return textResult("No allocations found in the specified range.")
         }
 
         const results: { id: number; ok: boolean; error?: string }[] = []

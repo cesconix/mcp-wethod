@@ -1,87 +1,42 @@
 /**
- * Paginated timesheet fetcher.
+ * Timesheet-specific wrappers over the generic page walker.
  *
- * The Wethod API returns at most 100 entries per request. This utility
- * paginates through all pages so callers get the complete result set.
+ * The Wethod API returns at most one page of timesheet entries per request;
+ * these helpers fetch the complete set for a person or a project. The paging
+ * loop itself lives in `paginate.mjs` and is shared with the other list
+ * endpoints.
  */
 
 import type { WethodClient } from "./client.mjs"
-
-type Timesheet = {
-  id: number
-  date: string
-  hours: number
-  notes: string | null
-  mode: string
-  project_id: number
-  person_id: number
-}
-
-const PAGE_SIZE = 100
+import { fetchAllPages } from "./paginate.mjs"
+import type { Timesheet } from "./schemas.mjs"
 
 /**
- * Fetches all timesheet entries for a person starting from a given date,
- * automatically paginating through all results.
+ * Fetches all timesheet entries for a person from a given date onward.
  */
-export async function fetchAllTimesheets(
+export function fetchAllTimesheets(
   client: WethodClient,
   opts: { person_id: number; date_gte: string },
 ): Promise<Timesheet[]> {
-  const all: Timesheet[] = []
-  let offset = 0
-
-  while (true) {
-    const page = await client.request<Timesheet[]>("GET", "/api/timesheets", {
-      params: {
-        person_id: opts.person_id,
-        date: `gte:${opts.date_gte}`,
-        limit: PAGE_SIZE,
-        offset,
-      },
-    })
-
-    all.push(...page)
-
-    if (page.length < PAGE_SIZE) break
-    offset += PAGE_SIZE
-  }
-
-  return all
+  return fetchAllPages<Timesheet>(client, "/api/timesheets", {
+    person_id: opts.person_id,
+    date: `gte:${opts.date_gte}`,
+  })
 }
 
 /**
- * Fetches ALL timesheet entries for a project, paginating through all pages.
+ * Fetches ALL timesheet entries for a project.
  *
  * Used by project-status backfill: fetch a project's full timesheet history
  * once, then sum hours per week client-side (see project-status-compute).
  * Pass `date_gte` to bound the lower end (e.g. start of the backfill range).
  */
-export async function fetchAllProjectTimesheets(
+export function fetchAllProjectTimesheets(
   client: WethodClient,
   opts: { project_id: number; date_gte?: string },
 ): Promise<Timesheet[]> {
-  const all: Timesheet[] = []
-  let offset = 0
-
-  while (true) {
-    const params: Record<string, string | number> = {
-      project_id: opts.project_id,
-      limit: PAGE_SIZE,
-      offset,
-    }
-    if (opts.date_gte) {
-      params.date = `gte:${opts.date_gte}`
-    }
-
-    const page = await client.request<Timesheet[]>("GET", "/api/timesheets", {
-      params,
-    })
-
-    all.push(...page)
-
-    if (page.length < PAGE_SIZE) break
-    offset += PAGE_SIZE
-  }
-
-  return all
+  return fetchAllPages<Timesheet>(client, "/api/timesheets", {
+    project_id: opts.project_id,
+    date: opts.date_gte ? `gte:${opts.date_gte}` : undefined,
+  })
 }

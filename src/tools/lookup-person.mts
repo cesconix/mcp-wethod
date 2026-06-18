@@ -9,6 +9,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader, PersonEntry } from "../utils/data-loader.mjs"
+import { textResult } from "../utils/format.mjs"
 
 function formatPerson(p: PersonEntry): string {
   const parts = [`${p.id}: ${p.name} ${p.surname}`]
@@ -49,37 +50,18 @@ export function registerLookupPerson(server: McpServer, data: DataLoader) {
       const persons = data.getPersons()
 
       if (persons.size === 0) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: "SYNC REQUIRED: Person data not found. Run the sync tool to populate local data.",
-            },
-          ],
-        }
+        return textResult(
+          "SYNC REQUIRED: Person data not found. Run the sync tool to populate local data.",
+        )
       }
 
       // Direct ID lookup
       if (params.id !== undefined) {
         const p = persons.get(params.id)
         if (!p) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Person ${params.id} not found.`,
-              },
-            ],
-          }
+          return textResult(`Person ${params.id} not found.`)
         }
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: formatPerson(p),
-            },
-          ],
-        }
+        return textResult(formatPerson(p))
       }
 
       // Search by name and enrichment fields
@@ -97,30 +79,16 @@ export function registerLookupPerson(server: McpServer, data: DataLoader) {
         )
 
         if (matches.length === 0) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `No person matching "${params.search}".`,
-              },
-            ],
-          }
+          return textResult(`No person matching "${params.search}".`)
         }
 
         const lines = matches.map((p) => formatPerson(p))
-        return {
-          content: [{ type: "text" as const, text: lines.join("\n") }],
-        }
+        return textResult(lines.join("\n"))
       }
 
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: `${persons.size} persons available. Provide id or search.`,
-          },
-        ],
-      }
+      return textResult(
+        `${persons.size} persons available. Provide id or search.`,
+      )
     },
   )
 }

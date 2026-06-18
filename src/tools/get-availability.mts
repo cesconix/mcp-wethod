@@ -13,7 +13,7 @@ import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS, WEEK_TOTAL_HOURS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
 import { addDays, getCurrentWeekMonday } from "../utils/date.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
 
 export function registerGetAvailability(
   server: McpServer,
@@ -74,9 +74,7 @@ export function registerGetAvailability(
           )
         }
 
-        return {
-          content: [{ type: "text" as const, text: lines.join("\n") }],
-        }
+        return textResult(lines.join("\n"))
       } catch (error) {
         return formatToolError(error)
       }

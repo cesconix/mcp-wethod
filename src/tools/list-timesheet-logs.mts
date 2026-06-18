@@ -10,7 +10,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
+import { paginationSchema } from "../utils/schemas.mjs"
 
 type TimesheetLog = {
   id: number
@@ -35,19 +36,7 @@ export function registerListTimesheetLogs(
       description:
         "List timesheet change logs from Wethod. Shows who modified timesheets, when, and what changed. Useful for auditing timesheet entries.",
       inputSchema: {
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(100)
-          .default(100)
-          .describe("Maximum results to return (1-100, default: 100)"),
-        offset: z
-          .number()
-          .int()
-          .min(0)
-          .default(0)
-          .describe("Number of results to skip for pagination"),
+        ...paginationSchema,
         person_id: z.number().int().optional().describe("Filter by person ID"),
         project_id: z
           .number()
@@ -78,11 +67,7 @@ export function registerListTimesheetLogs(
         )
 
         if (logs.length === 0) {
-          return {
-            content: [
-              { type: "text" as const, text: "No timesheet logs found." },
-            ],
-          }
+          return textResult("No timesheet logs found.")
         }
 
         const lines = logs.map((l) => {
@@ -91,9 +76,7 @@ export function registerListTimesheetLogs(
 
         const text = `Found ${logs.length} timesheet log(s):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

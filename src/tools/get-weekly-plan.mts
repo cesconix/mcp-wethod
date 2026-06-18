@@ -16,7 +16,7 @@ import {
 } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
 import { addDays, getCurrentWeekMonday } from "../utils/date.mjs"
-import { formatToolError } from "../utils/format.mjs"
+import { formatToolError, textResult } from "../utils/format.mjs"
 
 export function registerGetWeeklyPlan(
   server: McpServer,
@@ -93,9 +93,7 @@ export function registerGetWeeklyPlan(
 
         const text = `WEEKLY PLAN (${dateFrom} to ${dateTo})\n\n${blocks.join("\n\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

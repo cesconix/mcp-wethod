@@ -12,7 +12,8 @@ import { fetchAllocations } from "../utils/allocations.mjs"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
-import { formatDate, formatToolError } from "../utils/format.mjs"
+import { formatDate, formatToolError, textResult } from "../utils/format.mjs"
+import { paginationSchema } from "../utils/schemas.mjs"
 
 export function registerListAllocations(
   server: McpServer,
@@ -45,19 +46,7 @@ export function registerListAllocations(
           .string()
           .optional()
           .describe("End date filter YYYY-MM-DD (inclusive)"),
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(100)
-          .default(100)
-          .describe("Maximum results to return (1-100, default: 100)"),
-        offset: z
-          .number()
-          .int()
-          .min(0)
-          .default(0)
-          .describe("Number of results to skip for pagination"),
+        ...paginationSchema,
       },
       annotations: READONLY_ANNOTATIONS,
     },
@@ -73,9 +62,7 @@ export function registerListAllocations(
         })
 
         if (allocations.length === 0) {
-          return {
-            content: [{ type: "text" as const, text: "No allocations found." }],
-          }
+          return textResult("No allocations found.")
         }
 
         const personName = data.personName(params.person_id)
@@ -88,9 +75,7 @@ export function registerListAllocations(
 
         const text = `Allocations for ${personName} (${allocations.length} entries):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

@@ -9,6 +9,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
+import { textResult } from "../utils/format.mjs"
 
 export function registerLookupClient(server: McpServer, data: DataLoader) {
   server.registerTool(
@@ -30,32 +31,18 @@ export function registerLookupClient(server: McpServer, data: DataLoader) {
       const clients = data.getClients()
 
       if (clients.size === 0) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: "SYNC REQUIRED: Client data not found. Run the sync tool to populate local data.",
-            },
-          ],
-        }
+        return textResult(
+          "SYNC REQUIRED: Client data not found. Run the sync tool to populate local data.",
+        )
       }
 
       // Direct ID lookup
       if (params.id !== undefined) {
         const c = clients.get(params.id)
         if (!c) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Client ${params.id} not found.`,
-              },
-            ],
-          }
+          return textResult(`Client ${params.id} not found.`)
         }
-        return {
-          content: [{ type: "text" as const, text: `${c.id}: ${c.name}` }],
-        }
+        return textResult(`${c.id}: ${c.name}`)
       }
 
       // Search by name
@@ -66,30 +53,16 @@ export function registerLookupClient(server: McpServer, data: DataLoader) {
         )
 
         if (matches.length === 0) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `No client matching "${params.search}".`,
-              },
-            ],
-          }
+          return textResult(`No client matching "${params.search}".`)
         }
 
         const lines = matches.map((c) => `${c.id}: ${c.name}`)
-        return {
-          content: [{ type: "text" as const, text: lines.join("\n") }],
-        }
+        return textResult(lines.join("\n"))
       }
 
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: `${clients.size} clients available. Provide id or search.`,
-          },
-        ],
-      }
+      return textResult(
+        `${clients.size} clients available. Provide id or search.`,
+      )
     },
   )
 }

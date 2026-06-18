@@ -10,6 +10,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
+import { textResult } from "../utils/format.mjs"
 
 function formatProject(
   p: {
@@ -55,32 +56,18 @@ export function registerLookupProject(server: McpServer, data: DataLoader) {
       const projects = data.getProjects()
 
       if (projects.size === 0) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: "SYNC REQUIRED: Project data not found. Run the sync tool to populate local data.",
-            },
-          ],
-        }
+        return textResult(
+          "SYNC REQUIRED: Project data not found. Run the sync tool to populate local data.",
+        )
       }
 
       // Direct ID lookup
       if (params.id !== undefined) {
         const p = projects.get(params.id)
         if (!p) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Project ${params.id} not found.`,
-              },
-            ],
-          }
+          return textResult(`Project ${params.id} not found.`)
         }
-        return {
-          content: [{ type: "text" as const, text: formatProject(p, data) }],
-        }
+        return textResult(formatProject(p, data))
       }
 
       // Search by name or client
@@ -93,30 +80,16 @@ export function registerLookupProject(server: McpServer, data: DataLoader) {
         )
 
         if (matches.length === 0) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `No project matching "${params.search}".`,
-              },
-            ],
-          }
+          return textResult(`No project matching "${params.search}".`)
         }
 
         const lines = matches.map((p) => formatProject(p, data))
-        return {
-          content: [{ type: "text" as const, text: lines.join("\n") }],
-        }
+        return textResult(lines.join("\n"))
       }
 
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: `${projects.size} projects available. Provide id or search.`,
-          },
-        ],
-      }
+      return textResult(
+        `${projects.size} projects available. Provide id or search.`,
+      )
     },
   )
 }

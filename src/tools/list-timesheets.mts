@@ -10,17 +10,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatDate, formatToolError } from "../utils/format.mjs"
-
-type Timesheet = {
-  id: number
-  date: string
-  hours: number
-  notes: string | null
-  mode: string
-  project_id: number
-  person_id: number
-}
+import { formatDate, formatToolError, textResult } from "../utils/format.mjs"
+import { paginationSchema, TimesheetSchema } from "../utils/schemas.mjs"
 
 export function registerListTimesheets(
   server: McpServer,
@@ -46,42 +37,25 @@ export function registerListTimesheets(
           .string()
           .optional()
           .describe("Date filter with operator (e.g. 'gt:2026-01-01')"),
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(100)
-          .default(100)
-          .describe("Maximum results to return (1-100, default: 100)"),
-        offset: z
-          .number()
-          .int()
-          .min(0)
-          .default(0)
-          .describe("Number of results to skip for pagination"),
+        ...paginationSchema,
       },
       annotations: READONLY_ANNOTATIONS,
     },
     async (params) => {
       try {
-        const timesheets = await client.request<Timesheet[]>(
-          "GET",
-          "/api/timesheets",
-          {
-            params: {
-              person_id: params.person_id,
-              project_id: params.project_id,
-              date: params.date,
-              limit: params.limit,
-              offset: params.offset,
-            },
+        const timesheets = await client.request("GET", "/api/timesheets", {
+          params: {
+            person_id: params.person_id,
+            project_id: params.project_id,
+            date: params.date,
+            limit: params.limit,
+            offset: params.offset,
           },
-        )
+          schema: z.array(TimesheetSchema),
+        })
 
         if (timesheets.length === 0) {
-          return {
-            content: [{ type: "text" as const, text: "No timesheets found." }],
-          }
+          return textResult("No timesheets found.")
         }
 
         const lines = timesheets.map((ts) => {
@@ -92,9 +66,7 @@ export function registerListTimesheets(
 
         const text = `Found ${timesheets.length} timesheet(s):\n\n${lines.join("\n")}`
 
-        return {
-          content: [{ type: "text" as const, text }],
-        }
+        return textResult(text)
       } catch (error) {
         return formatToolError(error)
       }

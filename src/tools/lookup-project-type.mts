@@ -9,6 +9,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
+import { textResult } from "../utils/format.mjs"
 
 export function registerLookupProjectType(server: McpServer, data: DataLoader) {
   server.registerTool(
@@ -36,36 +37,19 @@ export function registerLookupProjectType(server: McpServer, data: DataLoader) {
       const types = data.getProjectTypes()
 
       if (types.size === 0) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: "SYNC REQUIRED: Project type data not found. Run the sync tool to populate local data.",
-            },
-          ],
-        }
+        return textResult(
+          "SYNC REQUIRED: Project type data not found. Run the sync tool to populate local data.",
+        )
       }
 
       if (params.id !== undefined) {
         const t = types.get(params.id)
         if (!t) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `Project type ${params.id} not found.`,
-              },
-            ],
-          }
+          return textResult(`Project type ${params.id} not found.`)
         }
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: `${t.id}: ${t.name} | chargeable: ${t.chargeable} | hours_type: ${t.hours_type}`,
-            },
-          ],
-        }
+        return textResult(
+          `${t.id}: ${t.name} | chargeable: ${t.chargeable} | hours_type: ${t.hours_type}`,
+        )
       }
 
       if (params.search) {
@@ -75,33 +59,19 @@ export function registerLookupProjectType(server: McpServer, data: DataLoader) {
         )
 
         if (matches.length === 0) {
-          return {
-            content: [
-              {
-                type: "text" as const,
-                text: `No project type matching "${params.search}".`,
-              },
-            ],
-          }
+          return textResult(`No project type matching "${params.search}".`)
         }
 
         const lines = matches.map(
           (t) =>
             `${t.id}: ${t.name} | chargeable: ${t.chargeable} | hours_type: ${t.hours_type}`,
         )
-        return {
-          content: [{ type: "text" as const, text: lines.join("\n") }],
-        }
+        return textResult(lines.join("\n"))
       }
 
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: `${types.size} project types available. Provide id or search.`,
-          },
-        ],
-      }
+      return textResult(
+        `${types.size} project types available. Provide id or search.`,
+      )
     },
   )
 }
