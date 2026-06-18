@@ -9,7 +9,11 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { DELETE_ANNOTATIONS } from "../utils/constants.mjs"
-import { errorText, formatToolError, textResult } from "../utils/format.mjs"
+import {
+  formatToolError,
+  requireConfirm,
+  textResult,
+} from "../utils/format.mjs"
 
 export function registerDeleteTimesheet(
   server: McpServer,
@@ -33,11 +37,8 @@ export function registerDeleteTimesheet(
     },
     async (params) => {
       try {
-        if (!params.confirm) {
-          return errorText(
-            "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true.",
-          )
-        }
+        const gate = requireConfirm(params.confirm)
+        if (gate) return gate
 
         await client.request("DELETE", `/api/timesheets/${params.id}`)
 

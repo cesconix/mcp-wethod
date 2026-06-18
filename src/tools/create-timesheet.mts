@@ -11,7 +11,12 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { WORK_HOURS_PER_DAY, WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import { addDays } from "../utils/date.mjs"
-import { errorText, formatToolError, textResult } from "../utils/format.mjs"
+import {
+  errorText,
+  formatToolError,
+  requireConfirm,
+  textResult,
+} from "../utils/format.mjs"
 import type { Timesheet } from "../utils/schemas.mjs"
 
 const DAY_OFFSETS: Record<string, number> = {
@@ -62,11 +67,8 @@ export function registerCreateTimesheet(
     },
     async (params) => {
       try {
-        if (!params.confirm) {
-          return errorText(
-            "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true.",
-          )
-        }
+        const gate = requireConfirm(params.confirm)
+        if (gate) return gate
 
         // Compute the actual calendar date from the Monday + day offset
         const actualDate = addDays(params.date, DAY_OFFSETS[params.day])
