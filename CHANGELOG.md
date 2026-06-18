@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.6.0](https://github.com/cesconix/mcp-wethod/releases/tag/v0.6.0) — 2026-06-18
+
+### Added
+
+- `list_project_statuses` and `get_project_status` tools for reading weekly project statuses
+- `create_project_status` tool — creates a weekly status in remaining-days mode; `days_left` is explicit or auto-computed from budget − timesheet
+- `delete_project_status` tool — corrections are done as delete + create
+- `backfill_project_statuses` tool — backfills weekly statuses across a Monday range, dry-run by default
+- Runtime response validation wired into the read tools (`list_budgets`, `list_projects`, `get_project`, `list_project_statuses`, `get_project_status`, `list_timesheets`)
+- Golden-output test harness plus unit tests for the shared pagination and schema helpers
+- "Writing a tool" conventions section in the README
+
+### Changed
+
+- Centralized domain types as Zod schemas in `utils/schemas.mts`; tools import them instead of re-declaring response shapes inline
+- Unified offset-pagination into a single generic `fetchAllPages` (`utils/paginate.mts`); `list_*` tools spread a shared `paginationSchema`
+- Extracted shared `textResult()` / `errorText()` output helpers and a `requireConfirm()` confirmation gate
+- Decomposed `sync.mts` into focused `src/sync/` modules and unified the three session fetchers into one
+
+### Fixed
+
+- `clearData()` now also removes `levels.json`
+
 ## [0.5.0](https://github.com/cesconix/mcp-wethod/releases/tag/v0.5.0) — 2026-03-08
 
 ### Added
