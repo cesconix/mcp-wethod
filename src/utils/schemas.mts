@@ -77,14 +77,6 @@ export const BudgetSchema = z.object({
 })
 export type Budget = z.infer<typeof BudgetSchema>
 
-/** Person — minimal identity subset. */
-export const PersonSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  surname: z.string(),
-})
-export type Person = z.infer<typeof PersonSchema>
-
 /** People-allocation entry — `/api/people-allocations`. */
 export const AllocationSchema = z.object({
   id: z.number(),
