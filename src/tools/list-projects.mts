@@ -11,7 +11,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import { formatToolError, textResult } from "../utils/format.mjs"
-import { ProjectSchema } from "../utils/schemas.mjs"
+import { ProjectSchema, paginationSchema } from "../utils/schemas.mjs"
 
 export function registerListProjects(server: McpServer, client: WethodClient) {
   server.registerTool(
@@ -21,19 +21,7 @@ export function registerListProjects(server: McpServer, client: WethodClient) {
       description:
         "List projects from Wethod. Supports filtering by probability and pagination. Returns formatted text with project ID, name, job order, probability, and value.",
       inputSchema: {
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(100)
-          .default(100)
-          .describe("Maximum results to return (1-100, default: 100)"),
-        offset: z
-          .number()
-          .int()
-          .min(0)
-          .default(0)
-          .describe("Number of results to skip for pagination"),
+        ...paginationSchema,
         probability: z
           .number()
           .optional()

@@ -11,7 +11,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import { formatToolError, textResult } from "../utils/format.mjs"
-import { BudgetSchema } from "../utils/schemas.mjs"
+import { BudgetSchema, paginationSchema } from "../utils/schemas.mjs"
 
 export function registerListBudgets(server: McpServer, client: WethodClient) {
   server.registerTool(
@@ -21,19 +21,7 @@ export function registerListBudgets(server: McpServer, client: WethodClient) {
       description:
         "List project budgets from Wethod. Returns budget status, total days, costs, and prices per project.",
       inputSchema: {
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(100)
-          .default(100)
-          .describe("Maximum results to return (1-100, default: 100)"),
-        offset: z
-          .number()
-          .int()
-          .min(0)
-          .default(0)
-          .describe("Number of results to skip for pagination"),
+        ...paginationSchema,
         project_id: z
           .number()
           .int()

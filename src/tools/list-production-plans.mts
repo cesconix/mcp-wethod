@@ -11,6 +11,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import { formatToolError, textResult } from "../utils/format.mjs"
+import { paginationSchema } from "../utils/schemas.mjs"
 
 type ProductionPlan = {
   id: number
@@ -31,19 +32,7 @@ export function registerListProductionPlans(
       description:
         "List production plan entries from Wethod. Shows planned production values by project and date. Compare with actual productions to track variance.",
       inputSchema: {
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(100)
-          .default(100)
-          .describe("Maximum results to return (1-100, default: 100)"),
-        offset: z
-          .number()
-          .int()
-          .min(0)
-          .default(0)
-          .describe("Number of results to skip for pagination"),
+        ...paginationSchema,
         project_id: z
           .number()
           .int()
