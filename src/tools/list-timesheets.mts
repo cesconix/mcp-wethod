@@ -11,7 +11,7 @@ import { z } from "zod"
 import type { WethodClient } from "../utils/client.mjs"
 import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
 import { formatDate, formatToolError, textResult } from "../utils/format.mjs"
-import { TimesheetSchema } from "../utils/schemas.mjs"
+import { paginationSchema, TimesheetSchema } from "../utils/schemas.mjs"
 
 export function registerListTimesheets(
   server: McpServer,
@@ -37,19 +37,7 @@ export function registerListTimesheets(
           .string()
           .optional()
           .describe("Date filter with operator (e.g. 'gt:2026-01-01')"),
-        limit: z
-          .number()
-          .int()
-          .min(1)
-          .max(100)
-          .default(100)
-          .describe("Maximum results to return (1-100, default: 100)"),
-        offset: z
-          .number()
-          .int()
-          .min(0)
-          .default(0)
-          .describe("Number of results to skip for pagination"),
+        ...paginationSchema,
       },
       annotations: READONLY_ANNOTATIONS,
     },

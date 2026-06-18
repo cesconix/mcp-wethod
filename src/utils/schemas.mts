@@ -19,6 +19,30 @@
 
 import { z } from "zod"
 
+/**
+ * Shared limit/offset input fields for the `list_*` tools. Spread into a tool's
+ * inputSchema alongside its own filters:
+ *
+ * ```ts
+ * inputSchema: { ...paginationSchema, project_id: z.number().int().optional() }
+ * ```
+ */
+export const paginationSchema = {
+  limit: z
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(100)
+    .describe("Maximum results to return (1-100, default: 100)"),
+  offset: z
+    .number()
+    .int()
+    .min(0)
+    .default(0)
+    .describe("Number of results to skip for pagination"),
+}
+
 /** Timesheet entry — `/api/timesheets`. */
 export const TimesheetSchema = z.object({
   id: z.number(),
