@@ -1,6 +1,6 @@
 {
   "name": "mcp-wethod",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "MCP server for Wethod project management — timesheet, planning, budgets, and team tools",
   "type": "module",
   "types": "./dist/index.d.mts",
