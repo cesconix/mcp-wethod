@@ -13,7 +13,12 @@ import { z } from "zod"
 import { fetchAllocations } from "../utils/allocations.mjs"
 import type { WethodClient } from "../utils/client.mjs"
 import { DELETE_ANNOTATIONS } from "../utils/constants.mjs"
-import { errorText, formatToolError, textResult } from "../utils/format.mjs"
+import {
+  errorText,
+  formatToolError,
+  requireConfirm,
+  textResult,
+} from "../utils/format.mjs"
 
 export function registerDeleteAllocation(
   server: McpServer,
@@ -61,11 +66,8 @@ export function registerDeleteAllocation(
     },
     async (params) => {
       try {
-        if (!params.confirm) {
-          return errorText(
-            "Operation not confirmed. Show a recap and get user confirmation first.",
-          )
-        }
+        const gate = requireConfirm(params.confirm)
+        if (gate) return gate
 
         // Single delete mode
         if (params.id !== undefined) {

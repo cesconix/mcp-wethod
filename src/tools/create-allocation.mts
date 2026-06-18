@@ -17,7 +17,7 @@ import type { WethodClient } from "../utils/client.mjs"
 import { WORK_HOURS_PER_DAY, WRITE_ANNOTATIONS } from "../utils/constants.mjs"
 import type { DataLoader } from "../utils/data-loader.mjs"
 import { getWeekdaysInRange } from "../utils/date.mjs"
-import { errorText, formatToolError } from "../utils/format.mjs"
+import { errorText, formatToolError, requireConfirm } from "../utils/format.mjs"
 
 export function registerCreateAllocation(
   server: McpServer,
@@ -67,11 +67,8 @@ export function registerCreateAllocation(
     },
     async (params) => {
       try {
-        if (!params.confirm) {
-          return errorText(
-            "Operation not confirmed. Show a recap and get user confirmation first.",
-          )
-        }
+        const gate = requireConfirm(params.confirm)
+        if (gate) return gate
 
         // Determine target dates
         let dates: string[]

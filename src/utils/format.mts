@@ -33,6 +33,25 @@ export function errorText(text: string) {
 }
 
 /**
+ * Confirm-gate for write/delete tools.
+ *
+ * Returns `null` when the caller confirmed (proceed), or the canonical
+ * not-confirmed error envelope otherwise. Usage:
+ *
+ * ```ts
+ * const gate = requireConfirm(params.confirm)
+ * if (gate) return gate
+ * ```
+ */
+export function requireConfirm(confirm: boolean) {
+  return confirm
+    ? null
+    : errorText(
+        "Operation not confirmed. You must show a recap to the user and get confirmation before setting confirm=true.",
+      )
+}
+
+/**
  * Builds an MCP-compliant error response from any caught error.
  *
  * Returns a structured object that the MCP SDK accepts as a tool error,
