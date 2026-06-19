@@ -1,6 +1,7 @@
 node_modules/
 dist/
-docs/
+docs/*
+!docs/COOKIE-MIGRATION.md
 *.log
 
 # OS / editor cruft
