@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
-import { registerGetAvailability } from "../../src/tools/get-availability.mjs"
-import { registerGetTeamTimesheet } from "../../src/tools/get-team-timesheet.mjs"
-import { registerGetWeeklyPlan } from "../../src/tools/get-weekly-plan.mjs"
+import { registerGetAvailability } from "../../src/tools/planning/get-availability.mjs"
+import { registerGetTeamTimesheet } from "../../src/tools/planning/get-team-timesheet.mjs"
+import { registerGetWeeklyPlan } from "../../src/tools/planning/get-weekly-plan.mjs"
 
 describe("team tools", () => {
   it("registerGetWeeklyPlan is a function", () => {

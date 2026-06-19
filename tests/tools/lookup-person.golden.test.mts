@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { registerLookupPerson } from "../../src/tools/lookup-person.mjs"
+import { registerLookupPerson } from "../../src/tools/lookup/lookup-person.mjs"
 import type { DataLoader, PersonEntry } from "../../src/utils/data-loader.mjs"
 import { createToolHarness } from "../helpers/tool-harness.mjs"
 

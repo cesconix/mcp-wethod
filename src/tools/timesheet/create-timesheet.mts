@@ -1,0 +1,142 @@
+/**
+ * Tool: create_timesheet
+ *
+ * Creates a new timesheet entry. Validates that the daily hour limit (8h)
+ * will not be exceeded by fetching existing entries for the same person
+ * and date before writing. Requires explicit confirmation.
+ */
+
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { z } from "zod"
+import type { WethodClient } from "../../utils/client.mjs"
+import {
+  WORK_HOURS_PER_DAY,
+  WRITE_ANNOTATIONS,
+} from "../../utils/constants.mjs"
+import { addDays } from "../../utils/date.mjs"
+import {
+  errorText,
+  formatToolError,
+  requireConfirm,
+  textResult,
+} from "../../utils/format.mjs"
+import type { Timesheet } from "../../utils/schemas.mjs"
+
+const DAY_OFFSETS: Record<string, number> = {
+  mon: 0,
+  tue: 1,
+  wed: 2,
+  thu: 3,
+  fri: 4,
+  sat: 5,
+  sun: 6,
+}
+
+export function registerCreateTimesheet(
+  server: McpServer,
+  client: WethodClient,
+) {
+  server.registerTool(
+    "create_timesheet",
+    {
+      title: "Create Timesheet",
+      description:
+        "Create a new timesheet entry. Requires confirm=true. Before creating, validates that adding the hours will not exceed the 8h daily limit. The 'date' must be a Monday (YYYY-MM-DD). Use the project_id from list_timesheets or list_projects.",
+      inputSchema: {
+        person_id: z
+          .number()
+          .int()
+          .describe("ID of the person to create the timesheet for"),
+        date: z
+          .string()
+          .describe("Date of the week (must be a Monday, YYYY-MM-DD format)"),
+        day: z
+          .enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"])
+          .describe("Day of the week"),
+        hours: z
+          .number()
+          .positive()
+          .max(WORK_HOURS_PER_DAY)
+          .describe(`Hours worked (max ${WORK_HOURS_PER_DAY}h per day)`),
+        project_id: z.number().int().describe("Project ID"),
+        notes: z.string().optional().describe("Optional notes"),
+        confirm: z
+          .boolean()
+          .describe(
+            "Must be true to execute. Show a recap and get user confirmation first.",
+          ),
+      },
+      annotations: WRITE_ANNOTATIONS,
+    },
+    async (params) => {
+      try {
+        const gate = requireConfirm(params.confirm)
+        if (gate) return gate
+
+        // Compute the actual calendar date from the Monday + day offset
+        const actualDate = addDays(params.date, DAY_OFFSETS[params.day])
+
+        // Fetch existing timesheets for the week, then filter by actual day
+        const existing = await client.request<Timesheet[]>(
+          "GET",
+          "/api/timesheets",
+          {
+            params: {
+              person_id: params.person_id,
+              date: params.date,
+            },
+          },
+        )
+
+        const existingHours = existing
+          .filter((ts) => ts.date === actualDate)
+          .reduce((sum, ts) => sum + ts.hours, 0)
+        const totalHours = existingHours + params.hours
+
+        if (totalHours > WORK_HOURS_PER_DAY) {
+          return errorText(
+            `Cannot create: adding ${params.hours}h would exceed the daily limit.\nExisting hours for ${actualDate}: ${existingHours}h\nTotal would be: ${totalHours}h (limit: ${WORK_HOURS_PER_DAY}h)`,
+          )
+        }
+
+        const timesheet = await client.request<Timesheet>(
+          "POST",
+          "/api/timesheets",
+          {
+            body: {
+              date: actualDate,
+              day: params.day,
+              hours: params.hours,
+              project_id: params.project_id,
+              person_id: params.person_id,
+              mode: "DAILY",
+              notes: params.notes,
+            },
+          },
+        )
+
+        const remaining = WORK_HOURS_PER_DAY - totalHours
+        const statusLine =
+          remaining > 0
+            ? `Remaining for ${actualDate}: ${remaining}h`
+            : `Day ${actualDate} is now complete (${WORK_HOURS_PER_DAY}/${WORK_HOURS_PER_DAY}h)`
+
+        const text = [
+          "Timesheet created successfully.",
+          "",
+          `ID: ${timesheet.id}`,
+          `Date: ${timesheet.date} (${params.day})`,
+          `Hours: ${timesheet.hours}h`,
+          `Project: ${timesheet.project_id}`,
+          `Notes: ${timesheet.notes ?? "N/A"}`,
+          "",
+          statusLine,
+        ].join("\n")
+
+        return textResult(text)
+      } catch (error) {
+        return formatToolError(error)
+      }
+    },
+  )
+}
