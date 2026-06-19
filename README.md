@@ -195,12 +195,16 @@ Requires Node.js >= 22.
 
 ### Writing a tool
 
-Every tool is one file in `src/tools/` exporting a `register<Name>` function and
-following the same shape. Canonical examples: `list-budgets.mts` (read) and
-`delete-timesheet.mts` (delete).
+Every tool is one file under `src/tools/<domain>/` exporting a `register<Name>`
+function and following the same shape. Canonical examples:
+`projects/list-budgets.mts` (read) and `timesheet/delete-timesheet.mts` (delete).
 
 Conventions:
 
+- **Domain folder** — tools are grouped by domain: `timesheet/`, `allocations/`,
+  `planning/`, `reporting/`, `projects/`, `project-status/`, `reference/`,
+  `lookup/`, `system/`. Put the file in the folder for its domain. Shared
+  helpers stay in `src/utils/` — domain folders do not hold their own utils.
 - **File & name** — kebab-case file `foo-bar.mts` exports `registerFooBar`; the
   MCP tool name is snake_case `foo_bar`; the title is Title Case.
 - **Second arg** — `client: WethodClient` for API tools, `data: DataLoader` for
@@ -219,10 +223,10 @@ Conventions:
 ```ts
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
-import type { WethodClient } from "../utils/client.mjs"
-import { READONLY_ANNOTATIONS } from "../utils/constants.mjs"
-import { formatToolError, textResult } from "../utils/format.mjs"
-import { BudgetSchema, paginationSchema } from "../utils/schemas.mjs"
+import type { WethodClient } from "../../utils/client.mjs"
+import { READONLY_ANNOTATIONS } from "../../utils/constants.mjs"
+import { formatToolError, textResult } from "../../utils/format.mjs"
+import { BudgetSchema, paginationSchema } from "../../utils/schemas.mjs"
 
 export function registerListExample(server: McpServer, client: WethodClient) {
   server.registerTool(
@@ -256,7 +260,7 @@ export function registerListExample(server: McpServer, client: WethodClient) {
 ```
 
 Exception: pure in-memory lookup tools (no I/O) intentionally omit the
-`try/catch` — see `lookup-person.mts`.
+`try/catch` — see `lookup/lookup-person.mts`.
 
 ## License
 

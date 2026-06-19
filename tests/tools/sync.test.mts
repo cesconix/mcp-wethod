@@ -219,7 +219,7 @@ describe("sync tool", () => {
 
   it("registerLookupProjectType is a function", async () => {
     const { registerLookupProjectType } = await import(
-      "../../src/tools/lookup-project-type.mjs"
+      "../../src/tools/lookup/lookup-project-type.mjs"
     )
     expect(typeof registerLookupProjectType).toBe("function")
   })
