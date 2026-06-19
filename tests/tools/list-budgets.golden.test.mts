@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import { registerListBudgets } from "../../src/tools/list-budgets.mjs"
+import { registerListBudgets } from "../../src/tools/projects/list-budgets.mjs"
 import type { WethodClient } from "../../src/utils/client.mjs"
 import { createToolHarness } from "../helpers/tool-harness.mjs"
 
