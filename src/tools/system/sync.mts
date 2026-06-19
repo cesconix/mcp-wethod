@@ -6,6 +6,10 @@
  * orchestrator (perform-sync). This file only wires the tool to the server.
  *
  * `performSync` is re-exported so the `setup` tool can run the same pipeline.
+ *
+ * LEGACY-COOKIE: this tool takes a `session_id` (SF6SESSID browser cookie)
+ * because its pipeline reads endpoints the public API does not expose. See
+ * docs/COOKIE-MIGRATION.md.
  */
 
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"

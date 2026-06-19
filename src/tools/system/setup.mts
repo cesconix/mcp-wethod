@@ -8,6 +8,9 @@
  *
  * Step 2 (identify): Provide person_id after reviewing synced persons.
  *   → Saves config, instructs user to reconnect.
+ *
+ * LEGACY-COOKIE: step 1 takes a `session_id` (SF6SESSID browser cookie) and
+ * runs the same cookie-dependent sync pipeline. See docs/COOKIE-MIGRATION.md.
  */
 
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs"
