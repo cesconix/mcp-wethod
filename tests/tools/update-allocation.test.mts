@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { registerUpdateAllocation } from "../../src/tools/update-allocation.mjs"
+import { registerUpdateAllocation } from "../../src/tools/allocations/update-allocation.mjs"
 
 describe("update_allocation tool", () => {
   it("registerUpdateAllocation is a function", () => {
